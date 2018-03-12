@@ -187,7 +187,7 @@ renderProject model i project =
                                 Table.tr []
                                     [ Table.td []
                                         [ a
-                                            (onClickPage (Urls.Jobset project.name jobset.id))
+                                            (onClickPage (Urls.Jobset project.id jobset.id))
                                             [ text jobset.name ]
                                         ]
                                     , Table.td [] [ text jobset.description ]

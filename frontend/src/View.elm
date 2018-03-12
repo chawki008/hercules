@@ -97,8 +97,8 @@ pageToView model =
         NewProject ->
             Pages.Project.view model model.currentPage
 
-        Jobset projectName jobsetName ->
-            case List.head (List.filter (\p -> p.name == projectName) model.projects) of
+        Jobset projectId jobsetName ->
+            case List.head (List.filter (\p -> p.id == projectId) model.projects) of
                 Just project ->
                     case List.head (List.filter (\j -> j.name == jobsetName) project.jobsets) of
                         Just jobset ->
@@ -108,4 +108,4 @@ pageToView model =
                             render404 ("Jobset " ++ jobsetName ++ " does not exist.")
 
                 Nothing ->
-                    render404 ("Project " ++ projectName ++ " does not exist.")
+                    render404 ("Project " ++ projectId ++ " does not exist.")
