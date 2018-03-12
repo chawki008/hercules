@@ -25,13 +25,13 @@ view model page =
         Home ->
             projectsView model model.projects
 
-        Project name ->
-            case List.head (List.filter (\p -> p.name == name) model.projects) of
+        Project id ->
+            case List.head (List.filter (\p -> p.id == id) model.projects) of
                 Just project ->
                     [ renderProject model 0 project ]
 
                 Nothing ->
-                    render404 ("Project " ++ name ++ " does not exist.")
+                    render404 ("Project " ++ id ++ " does not exist.")
 
         NewProject ->
             newProjectView model
@@ -134,7 +134,7 @@ renderProject model i project =
         ]
         [ h3
             []
-            [ a (onClickPage (Urls.Project project.name))
+            [ a (onClickPage (Urls.Project project.id))
                 [ Options.span
                     [ Options.css "margin" "16px" ]
                     [ text (project.name) ]
