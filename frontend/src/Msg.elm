@@ -5,6 +5,7 @@ import Http
 import Navigation
 import Components.LiveSearch as LiveSearch
 import Urls exposing (Page)
+import Hercules exposing (ProjectWithJobsets)
 
 
 type LoginType
@@ -23,3 +24,5 @@ type Msg
     | NewPage Page
     | ClickCreateProject
     | UrlChange Navigation.Location
+    | GetProjects (Result Http.Error (List ProjectWithJobsets))
+    

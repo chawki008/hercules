@@ -7,6 +7,7 @@ import Msg exposing (..)
 import Components.LiveSearch as LiveSearch
 import Urls exposing (..)
 import UrlParser exposing (parsePath)
+import Hercules as H
 
 
 update : Msg -> AppModel -> ( AppModel, Cmd Msg )
@@ -67,6 +68,11 @@ update msg model =
             ( { model | currentPage = page }
             , title (pageToTitle page)
             )
+        GetProjects (Ok json) ->
+            ( { model | projects = List.map H.mapProject json }, Cmd.none )
+
+        GetProjects (Err e) ->
+            ( Debug.log (toString e) model, Cmd.none ) 
 
 -- Ports
 

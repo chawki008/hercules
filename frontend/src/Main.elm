@@ -10,6 +10,7 @@ import Models exposing (..)
 import Update exposing (..)
 import View exposing (..)
 import Urls exposing (..)
+import Http
 
 
 init : Flags -> Navigation.Location -> ( AppModel, Cmd Msg )
@@ -19,6 +20,7 @@ init flags location =
         model = initialModel page flags
     in model ! [ Material.init Mdl
                , title (pageToTitle page)
+               , Http.send GetProjects  (getProjectWithJobsets "/api")                
                ]
 
 
