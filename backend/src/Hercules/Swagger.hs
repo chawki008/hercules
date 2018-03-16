@@ -20,7 +20,10 @@ import Hercules.Database.Extra
 instance ToSchema Project where
 instance ToSchema Jobset where
 instance ToSchema ProjectWithJobsets where
-
+instance ToSchema JobsetWithStatus where
+instance ToSchema JobsetStatus where
+instance ToSchema ProjectWithJobsetsWithStatus where
+    
 swaggerDoc :: Swagger
 swaggerDoc = toSwagger (Proxy :: Proxy QueryAPI)
     & info.title       .~ "Hercules CI API"

@@ -12,10 +12,11 @@ import Control.Monad.Log
 import Data.Bifunctor                       (second)
 import Data.Foldable                        (toList)
 import Data.List                            (sortOn)
-import Data.Maybe                           (catMaybes)
+import Data.Maybe                           (catMaybes, fromMaybe)
 import Data.Monoid                          ((<>))
 import Data.Swagger
 import Data.Text
+import Data.Int                              (Int32, Int64)
 import Network.Wai
 import Network.Wai.Handler.Warp
 import Network.Wai.Middleware.RequestLogger
@@ -34,7 +35,9 @@ import qualified Data.Text.IO       as T
 import Hercules.API
 import Hercules.Config
 import Hercules.Database.Extra       (JobsetNullable, Project,
-                                      ProjectWithJobsets (..),
+                                      ProjectWithJobsets (..), JobsetStatus (..), Jobset,
+                                      JobsetWithStatus (..), ProjectWithJobsetsWithStatus (..),
+                                      jobsetName, jobsetProject,
                                       fromNullableJobset, projectName)
 import Hercules.OAuth
 import Hercules.OAuth.Authenticators
@@ -81,7 +84,7 @@ server env = enter (Nat (runApp env)) api :<|> serveSwagger
         unprotected = getProjectNames
                       :<|> getProjects
                       :<|> getProject
-                      :<|> getProjectsWithJobsets
+                      :<|> getProjectsWithJobsetsWithStatus
         protected = getUser
 
 (.:) :: (c -> d) -> (a -> b -> c) -> a -> b -> d
@@ -132,3 +135,41 @@ groupSortOn f = fmap (\x -> (fst $ NE.head x, fmap snd x))
           . NE.groupWith (f . fst)
           . sortOn (f . fst)
 
+
+getProjectsWithJobsetsWithStatus :: App [ProjectWithJobsetsWithStatus]
+getProjectsWithJobsetsWithStatus = getProjectsWithJobsets >>= addStatus 
+
+addStatus :: [ProjectWithJobsets] -> App [ProjectWithJobsetsWithStatus]
+addStatus projectsWithJobsets = sequence (addStatusByProject <$>  projectsWithJobsets )
+
+addStatusByProject :: ProjectWithJobsets -> App (ProjectWithJobsetsWithStatus)
+addStatusByProject projectWithJobsets = do 
+    jobsets <- sequence $ addStatusByJobset <$>  projectWithJobsetsJobsets projectWithJobsets
+    return (ProjectWithJobsetsWithStatus  { project =  projectWithJobsetsProject projectWithJobsets
+                                          , jobsets = jobsets   
+                                          }
+           )
+
+addStatusByJobset :: Jobset -> App (JobsetWithStatus)
+addStatusByJobset jobset = do 
+    jobsetStatus <- getJobsetStatus (jobsetName jobset) (jobsetProject jobset)  
+    return (JobsetWithStatus { jobset = jobset
+                             , jobsetStatus = jobsetStatus
+                             }
+           )
+
+getJobsetStatus :: Text -> Text -> App (JobsetStatus)
+getJobsetStatus jobsetName jobsetProject= do
+    (succeed, builds, lastevaluatedAt) <- getSucceededFailedLastEvaluated jobsetName jobsetProject
+    queued <- getQueued jobsetName jobsetProject
+    return (JobsetStatus  { succeed = succeed
+                          , failed =  (-) <$> builds <*> Just ( fromMaybe 0 succeed) 
+                          , queued = queued
+                          , lastevaluatedAt = lastevaluatedAt
+                          })
+
+getSucceededFailedLastEvaluated :: Text -> Text -> App((Maybe Int32, Maybe Int32, Int32))
+getSucceededFailedLastEvaluated jobsetName jobsetProject = (fromMaybe (Just 0, Just 0, 0)) <$> (headMay <$> runHydraQueryWithConnection (jobsetSucceedFailedLastEvaluatedQuery  jobsetName jobsetProject))
+
+getQueued :: Text -> Text -> App(Maybe Int64)
+getQueued jobsetName jobsetProject = headMay <$> runHydraQueryWithConnection (jobsetQueueLengthQuery jobsetName jobsetProject)  ;

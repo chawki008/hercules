@@ -10,6 +10,8 @@ module Hercules.Query.Hydra
   , projectQuery
   , projectsQuery
   , projectsWithJobsetsQuery
+  , jobsetQueueLengthQuery
+  , jobsetSucceedFailedLastEvaluatedQuery
   ) where
 
 import Control.Arrow (returnA)
@@ -45,3 +47,20 @@ projectsWithJobsetsQuery
 projectsWithJobsetsQuery = leftJoin projectsQuery jobsetsQuery eqName
   where
     eqName (Project{..}, Jobset{..}) = projectName .== jobsetProject
+
+-- | A query to get the number of succeed and failed builds of the last jobset's evaluation 
+jobsetSucceedFailedLastEvaluatedQuery :: Text -> Text -> Query (Column (Nullable PGInt4), Column (Nullable PGInt4), Column PGInt4 )
+jobsetSucceedFailedLastEvaluatedQuery jobsetName jobsetProject  = proc () -> do
+  Jobseteval{..} <- limit 1 $ (orderBy (desc jobsetevalTimestamp) $ proc () -> do
+      jobseteval@Jobseteval{..} <- queryTable jobsetevalTable -< ()
+      restrict -< ((jobsetevalJobset .== pgStrictText jobsetName) .&& (jobsetevalProject .== pgStrictText jobsetProject))
+      returnA -< jobseteval ) -< ()
+  returnA -< (jobsetevalNrsucceeded, jobsetevalNrbuilds, jobsetevalTimestamp)  
+
+-- | A query to get a jobset's query length 
+jobsetQueueLengthQuery :: Text -> Text -> Query (Column PGInt8)
+jobsetQueueLengthQuery jobsetName jobsetProject = aggregate countStar (proc () -> do
+  build@Build{..} <- queryTable buildTable -< ()
+  restrict -< ((buildFinished .== pgInt4 0) .&& (buildJobset .== pgStrictText jobsetName ) .&& (buildProject .== pgStrictText jobsetProject ))
+  returnA -< build)
+  
