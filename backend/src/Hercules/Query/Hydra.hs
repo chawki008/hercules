@@ -13,6 +13,7 @@ module Hercules.Query.Hydra
   , jobsetQueueLengthQuery
   , jobsetSucceedFailedLastEvaluatedQuery
   , projectWithJobsetsQuery
+  , jobsetevalsQuery
   ) where
 
 import Control.Arrow (returnA)
@@ -73,4 +74,10 @@ projectWithJobsetsQuery
 projectWithJobsetsQuery projectId = leftJoin (projectQuery projectId) jobsetsQuery eqName
   where
     eqName (Project{..}, Jobset{..}) = projectName .== jobsetProject
-      
+
+jobsetevalsQuery :: Text -> Text -> Query JobsetevalReadColumns     
+jobsetevalsQuery projectName jobsetName = orderBy (desc jobsetevalTimestamp) $ proc () -> do 
+  jobseteval@Jobseteval{..} <- queryTable jobsetevalTable -< ()
+  restrict -< ((jobsetevalJobset .== pgStrictText jobsetName) .&& (jobsetevalProject .== pgStrictText projectName))
+  returnA -< jobseteval  
+  

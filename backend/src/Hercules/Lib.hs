@@ -35,7 +35,7 @@ import qualified Data.Text.IO       as T
 import Hercules.API
 import Hercules.Config
 import Hercules.Database.Extra       (JobsetNullable, Project,
-                                      ProjectWithJobsets (..), JobsetStatus (..), Jobset,
+                                      ProjectWithJobsets (..), JobsetStatus (..), Jobset, Jobseteval,
                                       JobsetWithStatus (..), ProjectWithJobsetsWithStatus (..),
                                       jobsetName, jobsetProject,
                                       fromNullableJobset, projectName)
@@ -86,6 +86,7 @@ server env = enter (Nat (runApp env)) api :<|> serveSwagger
                       :<|> getProject
                       :<|> getProjectsWithJobsetsWithStatus
                       :<|> getProjectWithJobsetsWithStatus
+                      :<|> getJobsetEvals
         protected = getUser
 
 (.:) :: (c -> d) -> (a -> b -> c) -> a -> b -> d
@@ -125,11 +126,11 @@ getProjectsWithJobsets =
   fmap (uncurry makeProjectWithJobsets . second toList)
   . groupSortOn projectName
   <$> (runHydraQueryWithConnection projectsWithJobsetsQuery :: App [(Project, JobsetNullable)])
-  where
-    makeProjectWithJobsets :: Project -> [JobsetNullable] -> ProjectWithJobsets
-    makeProjectWithJobsets p jms =
-      let js = catMaybes (fromNullableJobset <$> jms)
-      in ProjectWithJobsets p js
+
+makeProjectWithJobsets :: Project -> [JobsetNullable] -> ProjectWithJobsets
+makeProjectWithJobsets p jms =
+  let js = catMaybes (fromNullableJobset <$> jms)
+  in ProjectWithJobsets p js
 
 groupSortOn :: Ord k => (a -> k) -> [(a, v)] -> [(a, NE.NonEmpty v)]
 groupSortOn f = fmap (\x -> (fst $ NE.head x, fmap snd x))
@@ -182,3 +183,7 @@ getProjectWithJobsets :: Text -> App (Maybe ProjectWithJobsets)
 getProjectWithJobsets projectId =  headMay <$> fmap (uncurry makeProjectWithJobsets . second toList)
   . groupSortOn projectName
   <$> (runHydraQueryWithConnection (projectWithJobsetsQuery projectId) :: App [(Project, JobsetNullable)]) 
+
+getJobsetEvals :: Text -> Text -> App [Jobseteval]
+getJobsetEvals projectName jobsetName = runHydraQueryWithConnection (jobsetevalsQuery projectName jobsetName)
+ 

@@ -835,8 +835,12 @@ data Jobseteval' c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 =
     , jobsetevalNrbuilds     :: c9
     , jobsetevalNrsucceeded  :: c10
     }
+  deriving(Generic)
 
 type Jobseteval = Jobseteval' Int32 Text Text Int32 Int32 Int32 Int32 Text (Maybe Int32) (Maybe Int32)
+
+instance ToJSON Jobseteval where
+instance ElmType Jobseteval where
 
 type JobsetevalReadColumns = Jobseteval' (Column PGInt4) (Column PGText) (Column PGText) (Column PGInt4) (Column PGInt4) (Column PGInt4) (Column PGInt4) (Column PGText) (Column (Nullable PGInt4)) (Column (Nullable PGInt4))
 
