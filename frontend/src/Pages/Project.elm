@@ -28,7 +28,7 @@ view model page =
         Project id ->
             case List.head (List.filter (\p -> p.id == id) model.projects) of
                 Just project ->
-                    [ renderProject model 0 project ]
+                    [ renderProjectWithDetails model 0 project ]
 
                 Nothing ->
                     render404 ("Project " ++ id ++ " does not exist.")
@@ -125,6 +125,79 @@ newProjectView model =
            ]
 
 
+renderProjectWithDetails : AppModel -> Int -> Project -> Html Msg
+renderProjectWithDetails model i project =
+    Options.div
+        [ Elevation.e2
+        , Options.css "margin" "10px"
+        , Options.css "padding" "4px"
+        ]
+        [ h5
+            []
+            [ a (onClickPage (Urls.Project project.id))
+                [ Options.span
+                    [ Options.css "margin" "16px" ]
+                    [ text (project.name) ]
+                ]
+            , small
+                [ class "hidden-xs" ]
+                [ text ("(" ++ project.description ++ ")") ]
+              -- TODO: correct index
+            , Menu.render Mdl
+                [ i + 10 ]
+                model.mdl
+                [ Menu.ripple
+                , Menu.bottomRight
+                , Options.css "float" "right"
+                ]
+                [ Menu.item []
+                    [ menuIcon "add"
+                    , text "Add a jobset"
+                    ]
+                , Menu.item []
+                    [ menuIcon "settings"
+                    , text "Configuration"
+                    ]
+                , Menu.item []
+                    [ menuIcon "delete"
+                    , text "Delete the project"
+                    ]
+                ]
+            ]
+        , if List.isEmpty project.jobsets then
+            Options.span
+                [ Options.center
+                , Options.css "margin" "30px"
+                ]
+                [ text "No Jobsets configured yet." ]
+          else
+            Table.table [ Options.css "width" "100%" ]
+                [ Table.thead []
+                    [ Table.tr []
+                        [ Table.th [] [ text "Jobset", jobsetHelp model ]
+                        , Table.th [] [ text "Description" ]
+                        , Table.th [] [ text "Job status" ]
+                        , Table.th [] [ text "Last evaluation" ]
+                        ]
+                    ]
+                , Table.tbody []
+                    (search project.jobsets
+                        |> List.map
+                            (\jobset ->
+                                Table.tr []
+                                    [ Table.td []
+                                        [ a
+                                            (onClickPage (Urls.Jobset project.id jobset.id))
+                                            [ text jobset.name ]
+                                        ]
+                                    , Table.td [] [ text jobset.description ]
+                                    , Table.td [] (statusLabels jobset.succeeded jobset.failed jobset.queued)
+                                    , Table.td [] [ text jobset.lastEvaluation ]
+                                    ]
+                            )
+                    )
+                ]
+        ]
 renderProject : AppModel -> Int -> Project -> Html Msg
 renderProject model i project =
     Options.div

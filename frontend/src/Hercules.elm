@@ -202,8 +202,8 @@ getProjectByProjectName urlBase capture_projectName =
             False
         }
 
-getProjectWithJobsets : String -> Http.Request (List (ProjectWithJobsets))
-getProjectWithJobsets urlBase =
+getProjectsWithJobsets : String -> Http.Request (List (ProjectWithJobsets))
+getProjectsWithJobsets urlBase =
     Http.request
         { method =
             "GET"
@@ -266,6 +266,29 @@ getProtected urlBase header_authorization =
             Http.emptyBody
         , expect =
             Http.expectJson string
+        , timeout =
+            Nothing
+        , withCredentials =
+            False
+        }
+
+getProjectWithJobsets : String -> String -> Http.Request  (ProjectWithJobsets)
+getProjectWithJobsets urlBase projectId =
+    Http.request
+        { method =
+            "GET"
+        , headers =
+            []
+        , url =
+            String.join "/"
+                [ urlBase
+                , "projectWithJobsets"
+                , projectId |> Http.encodeUri
+                ]
+        , body =
+            Http.emptyBody
+        , expect =
+            Http.expectJson (decodeProjectWithJobsets)
         , timeout =
             Nothing
         , withCredentials =

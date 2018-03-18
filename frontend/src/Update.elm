@@ -8,6 +8,7 @@ import Components.LiveSearch as LiveSearch
 import Urls exposing (..)
 import UrlParser exposing (parsePath)
 import Hercules as H
+import Http
 
 
 update : Msg -> AppModel -> ( AppModel, Cmd Msg )
@@ -55,7 +56,13 @@ update msg model =
                 ( newmodel, Cmd.map LiveSearchMsg cmds )
 
         NewPage page ->
-            ( model, Navigation.newUrl (pageToURL page) )
+            case page of 
+                Project projectId  -> 
+                    model ! [Navigation.newUrl (pageToURL page)
+                            ,Http.send GetProjectWithJobsets  (H.getProjectWithJobsets "/api" projectId ) ] 
+
+                _ ->    
+                    ( model, Navigation.newUrl (pageToURL page) )
 
         ClickCreateProject ->
             -- TODO: http
@@ -72,6 +79,19 @@ update msg model =
             ( { model | projects = List.map H.mapProject json }, Cmd.none )
 
         GetProjects (Err e) ->
+            ( Debug.log (toString e) model, Cmd.none ) 
+        
+        GetProjectWithJobsets (Ok json) ->
+            let 
+                oldProjects = model.projects
+                newProject = H.mapProjectWithJobsets json
+                updateProject : Project -> Project
+                updateProject project = if project.id == newProject.id then newProject else project
+                newProjects = List.map updateProject oldProjects 
+            in
+                ( { model | projects = newProjects }, Cmd.none )
+
+        GetProjectWithJobsets (Err e) ->
             ( Debug.log (toString e) model, Cmd.none ) 
 
 -- Ports
