@@ -20,7 +20,7 @@ init flags location =
         model = initialModel page flags
     in model ! [ Material.init Mdl
                , title (pageToTitle page)
-               , Http.send GetProjects  (getProjectWithJobsets "/api")                
+               , Http.send GetProjects  (getProjects "/api")                
                ]
 
 

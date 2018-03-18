@@ -4,7 +4,6 @@ secret.key
 #-- Elm
 docs/_build/
 elm-stuff/
-frontend/src/Hercules.elm
 frontend/index.html
 node_modules/
 
