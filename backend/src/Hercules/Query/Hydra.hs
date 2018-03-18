@@ -12,6 +12,7 @@ module Hercules.Query.Hydra
   , projectsWithJobsetsQuery
   , jobsetQueueLengthQuery
   , jobsetSucceedFailedLastEvaluatedQuery
+  , projectWithJobsetsQuery
   ) where
 
 import Control.Arrow (returnA)
@@ -40,8 +41,11 @@ projectQuery name = proc () -> do
 
 -- | A query to get a list of all the jobsets
 jobsetsQuery :: Query JobsetReadColumns
-jobsetsQuery = queryTable jobsetTable
-
+jobsetsQuery = proc () -> do
+    jobset@Jobset{..} <- queryTable jobsetTable -< () 
+    restrict -< jobsetEnabled ./= pgInt4 0
+    returnA -< jobset
+    
 projectsWithJobsetsQuery
   :: Query (ProjectReadColumns, JobsetNullableColumns)
 projectsWithJobsetsQuery = leftJoin projectsQuery jobsetsQuery eqName
@@ -63,4 +67,10 @@ jobsetQueueLengthQuery jobsetName jobsetProject = aggregate countStar (proc () -
   build@Build{..} <- queryTable buildTable -< ()
   restrict -< ((buildFinished .== pgInt4 0) .&& (buildJobset .== pgStrictText jobsetName ) .&& (buildProject .== pgStrictText jobsetProject ))
   returnA -< build)
-  
+
+projectWithJobsetsQuery
+  :: Text -> Query (ProjectReadColumns, JobsetNullableColumns)
+projectWithJobsetsQuery projectId = leftJoin (projectQuery projectId) jobsetsQuery eqName
+  where
+    eqName (Project{..}, Jobset{..}) = projectName .== jobsetProject
+      

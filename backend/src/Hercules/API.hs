@@ -26,7 +26,8 @@ type Unprotected =
       "projectNames" :> Get '[JSON] [Text]
  :<|> "project" :> Get '[JSON] [Project]
  :<|> "project" :> Capture "projectName" Text :> Get '[JSON] (Maybe Project)
- :<|> "projectWithJobsets" :> Get '[JSON] [ProjectWithJobsetsWithStatus] 
+ :<|> "projectsWithJobsets" :> Get '[JSON] [ProjectWithJobsetsWithStatus] 
+ :<|> "projectWithJobsets" :> Capture "projectId" Text :> Get '[JSON] (Maybe ProjectWithJobsetsWithStatus)
 
 type Protected = "protected" :> Get '[JSON] Text
 

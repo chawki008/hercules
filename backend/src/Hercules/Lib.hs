@@ -85,6 +85,7 @@ server env = enter (Nat (runApp env)) api :<|> serveSwagger
                       :<|> getProjects
                       :<|> getProject
                       :<|> getProjectsWithJobsetsWithStatus
+                      :<|> getProjectWithJobsetsWithStatus
         protected = getUser
 
 (.:) :: (c -> d) -> (a -> b -> c) -> a -> b -> d
@@ -173,3 +174,11 @@ getSucceededFailedLastEvaluated jobsetName jobsetProject = (fromMaybe (Just 0, J
 
 getQueued :: Text -> Text -> App(Maybe Int64)
 getQueued jobsetName jobsetProject = headMay <$> runHydraQueryWithConnection (jobsetQueueLengthQuery jobsetName jobsetProject)  ;
+
+getProjectWithJobsetsWithStatus :: Text -> App (Maybe ProjectWithJobsetsWithStatus)
+getProjectWithJobsetsWithStatus projectId = (getProjectWithJobsets projectId) >>=  sequence.(fmap addStatusByProject)  
+
+getProjectWithJobsets :: Text -> App (Maybe ProjectWithJobsets)
+getProjectWithJobsets projectId =  headMay <$> fmap (uncurry makeProjectWithJobsets . second toList)
+  . groupSortOn projectName
+  <$> (runHydraQueryWithConnection (projectWithJobsetsQuery projectId) :: App [(Project, JobsetNullable)]) 
