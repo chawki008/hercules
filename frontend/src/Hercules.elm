@@ -317,41 +317,60 @@ mapProject project =
 
 mapJobset : JobsetWithStatus -> M.Jobset
 mapJobset jobsetWithStatus = 
-                     let 
-                         lastevaluated = Date.fromTime (toFloat (jobsetWithStatus.jobsetStatus.lastevaluatedAt*1000))
-                         year = toString (Date.year lastevaluated)
-                         month = toString (Date.month lastevaluated)
-                         day = toString (Date.day lastevaluated)
-                         hour = toString (Date.hour lastevaluated)
-                         minute = toString (Date.minute lastevaluated)
-                     in 
-                      { id = jobsetWithStatus.jobset.jobsetName
-                      , name = jobsetWithStatus.jobset.jobsetName
-                      , description = Maybe.withDefault ""  jobsetWithStatus.jobset.jobsetDescription
-                      , queued = Maybe.withDefault 0 jobsetWithStatus.jobsetStatus.queued
-                      , failed = Maybe.withDefault 0 jobsetWithStatus.jobsetStatus.failed
-                      , succeeded = Maybe.withDefault 0 jobsetWithStatus.jobsetStatus.succeeded
-                      , isShown = True
-                      , lastEvaluation =  year ++ "-" ++ month ++ "-" ++ day ++ " " ++ hour ++ ":" ++ minute
-                      } 
+    { id = jobsetWithStatus.jobset.jobsetName
+    , name = jobsetWithStatus.jobset.jobsetName
+    , description = Maybe.withDefault ""  jobsetWithStatus.jobset.jobsetDescription
+    , queued = Maybe.withDefault 0 jobsetWithStatus.jobsetStatus.queued
+    , failed = Maybe.withDefault 0 jobsetWithStatus.jobsetStatus.failed
+    , succeeded = Maybe.withDefault 0 jobsetWithStatus.jobsetStatus.succeeded
+    , isShown = True
+    , lastEvaluation =  timestampToString jobsetWithStatus.jobsetStatus.lastevaluatedAt
+    } 
                        
                       
 mapJobsetevalsToJobsetPage : List (Jobseteval) -> M.JobsetPage
 mapJobsetevalsToJobsetPage jobsetevals = 
-    { latestCheckTime = Date.fromString "2016-08-06 12:38:01"
-    , latestEvaluationTime = Date.fromString "2016-08-06 12:38:01"
-    , latestFinishedEvaluationTime = Date.fromString "2016-08-06 12:38:01"
-    , evaluations = List.map mapJobsetevalToEval jobsetevals
-    , name = "s"
-    }
+    let 
+        latestJobsetEval = Maybe.withDefault  { jobsetevalId = 0
+                                            , jobsetevalProject = ""
+                                            , jobsetevalJobset =  ""
+                                            , jobsetevalTimestamp = 0
+                                            , jobsetevalCheckouttime = 0
+                                            , jobsetevalEvaltime = 0
+                                            , jobsetevalHasnewbuilds = 0
+                                            , jobsetevalHash = ""
+                                            , jobsetevalNrbuilds = Just 0
+                                            , jobsetevalNrsucceeded = Just 0
+                                            } 
+                                            (List.head jobsetevals) 
+    in
+        { latestCheckTime = "2016-08-06 12:38:01"
+        , latestEvaluationTime = timestampToString latestJobsetEval.jobsetevalTimestamp
+        , latestFinishedEvaluationTime = "2016-08-06 12:38:01"
+        , evaluations = List.map mapJobsetevalToEval jobsetevals
+        , name = latestJobsetEval.jobsetevalJobset
+        }
 
 mapJobsetevalToEval : Jobseteval -> M.Evaluation
-mapJobsetevalToEval jobseteval = 
+mapJobsetevalToEval jobseteval =  
     { id = jobseteval.jobsetevalId
     , inputChanges = "dsds"
     , jobSummary = { succeeded = Maybe.withDefault 0 jobseteval.jobsetevalNrsucceeded 
-                   , failed = (Maybe.withDefault 0 jobseteval.jobsetevalNrbuilds) - (Maybe.withDefault 0 jobseteval.jobsetevalNrsucceeded) 
-                   , inQueue  =  Maybe.withDefault 0 jobseteval.jobsetevalNrsucceeded 
-                   }
-    , evaluatedAt = Date.fromString (toString jobseteval.jobsetevalEvaltime)
-    }    
+                , failed = (Maybe.withDefault 0 jobseteval.jobsetevalNrbuilds) - (Maybe.withDefault 0 jobseteval.jobsetevalNrsucceeded) 
+                , inQueue  =  Maybe.withDefault 0 jobseteval.jobsetevalNrsucceeded 
+                }
+    , evaluatedAt = timestampToString jobseteval.jobsetevalTimestamp
+    }  
+
+timestampToString : Int -> String         
+timestampToString timstamp = 
+    let 
+        evaluatedAt = Date.fromTime (toFloat (timstamp*1000))
+        year = toString (Date.year evaluatedAt)
+        month = toString (Date.month evaluatedAt)
+        day = toString (Date.day evaluatedAt)
+        hours = toString (Date.hour evaluatedAt)
+        minutes = toString (Date.minute evaluatedAt)
+        seconds  = toString (Date.second  evaluatedAt)
+    in 
+        year ++ "-" ++ month ++ "-" ++ day ++ " " ++ hours ++ ":" ++ minutes ++ ":" ++ seconds

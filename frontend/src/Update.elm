@@ -9,6 +9,7 @@ import Urls exposing (..)
 import UrlParser exposing (parsePath)
 import Hercules as H
 import Http
+import Date 
 
 
 update : Msg -> AppModel -> ( AppModel, Cmd Msg )
@@ -57,12 +58,19 @@ update msg model =
 
         NewPage page ->
             case page of 
+                Jobset projectId jobsetName -> 
+                    model ! [Navigation.newUrl (pageToURL page)
+                            , Http.send GetJobsetEvals  (H.getJobsetEvals "/api" projectId jobsetName ) ] 
+
                 Project projectId  -> 
                     model ! [Navigation.newUrl (pageToURL page)
-                            ,Http.send GetProjectWithJobsets  (H.getProjectWithJobsets "/api" projectId ) ] 
+                            , Http.send GetProjectWithJobsets  (H.getProjectWithJobsets "/api" projectId ) ] 
 
+                Home ->
+                    model ! [Navigation.newUrl (pageToURL page) 
+                            , Http.send GetProjects  (H.getProjects "/api")  ]    
                 _ ->    
-                    ( model, Navigation.newUrl (pageToURL page) )
+                    ( model, Navigation.newUrl (pageToURL Home) )
 
         ClickCreateProject ->
             -- TODO: http
@@ -75,6 +83,7 @@ update msg model =
             ( { model | currentPage = page }
             , title (pageToTitle page)
             )
+            
         GetProjects (Ok json) ->
             ( { model | projects = List.map H.mapProject json }, Cmd.none )
 
@@ -87,11 +96,20 @@ update msg model =
                 newProject = H.mapProjectWithJobsets json
                 updateProject : Project -> Project
                 updateProject project = if project.id == newProject.id then newProject else project
-                newProjects = List.map updateProject oldProjects 
+                updatedProjects = List.map updateProject oldProjects 
+                newProjects = if List.member newProject updatedProjects then updatedProjects
+                                                                         else List.append [newProject] oldProjects
+
             in
                 ( { model | projects = newProjects }, Cmd.none )
 
         GetProjectWithJobsets (Err e) ->
+            ( Debug.log (toString e) model, Cmd.none ) 
+
+        GetJobsetEvals (Ok json) ->
+            ({ model | jobsetPage = Ok (H.mapJobsetevalsToJobsetPage json) }, Cmd.none )
+
+        GetJobsetEvals (Err e) ->
             ( Debug.log (toString e) model, Cmd.none ) 
 
 -- Ports

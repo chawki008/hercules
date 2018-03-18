@@ -11,6 +11,7 @@ import Update exposing (..)
 import View exposing (..)
 import Urls exposing (..)
 import Http
+import Task 
 
 
 init : Flags -> Navigation.Location -> ( AppModel, Cmd Msg )
@@ -20,7 +21,7 @@ init flags location =
         model = initialModel page flags
     in model ! [ Material.init Mdl
                , title (pageToTitle page)
-               , Http.send GetProjects  (getProjects "/api")                
+               , Task.succeed (NewPage page)  |> Task.perform identity             
                ]
 
 

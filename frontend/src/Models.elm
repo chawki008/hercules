@@ -78,14 +78,14 @@ type alias Evaluation =
     { id : Int
     , inputChanges : String
     , jobSummary : JobSummary
-    , evaluatedAt : Result String Date.Date
+    , evaluatedAt : String
     }
 
 
 type alias JobsetPage =
-    { latestCheckTime : Result String Date.Date
-    , latestEvaluationTime : Result String Date.Date
-    , latestFinishedEvaluationTime : Result String Date.Date
+    { latestCheckTime : String
+    , latestEvaluationTime : String
+    , latestFinishedEvaluationTime : String
     , evaluations : List Evaluation
     , name : String
     }
@@ -152,15 +152,15 @@ initialModel page flags =
             -- Pages
         , jobsetPage =
             Ok
-                { latestCheckTime = Date.fromString "2016-08-06 12:38:01"
-                , latestEvaluationTime = Date.fromString "2016-08-06 17:45:55"
-                , latestFinishedEvaluationTime = Date.fromString "2016-08-06 17:45:55"
+                { latestCheckTime =  "2016-08-06 12:38:01"
+                , latestEvaluationTime =  "2016-08-06 17:45:55"
+                , latestFinishedEvaluationTime =  "2016-08-06 17:45:55"
                 , name = "Hardcodedfoobar"
                 , evaluations =
                     [ { id = 123
                       , inputChanges = "snabbBsrc → e1fdc74"
                       , jobSummary = { succeeded = 145, failed = 62, inQueue = 23 }
-                      , evaluatedAt = Date.fromString "2016-08-05 13:43:40"
+                      , evaluatedAt =  "2016-08-05 13:43:40"
                       }
                     ]
                 }
