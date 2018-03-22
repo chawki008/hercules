@@ -29,10 +29,10 @@ data JobsetWithStatus = JobsetWithStatus
   deriving(Generic)
 
 data JobsetStatus = JobsetStatus
-  { succeed :: Maybe (Int32)
-  , failed :: Maybe (Int32)
-  , queued :: Maybe (Int64)
-  , lastevaluatedAt :: Int32
+  { succeeded ::  Int64
+  , failed ::  Int64
+  , queued ::  Int64
+  , lastevaluatedAt :: Maybe Int32
   }
   deriving(Generic)
 

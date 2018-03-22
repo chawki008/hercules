@@ -117,16 +117,11 @@ getProjectNames = runHydraQueryWithConnection projectNameQuery
 
 getProject :: Text -> App (Maybe Project)
 getProject name = headMay <$> runHydraQueryWithConnection (projectQuery name)
-
+ 
 getProjects :: App [Project]
 getProjects = runHydraQueryWithConnection projectsQuery
-
-getProjectsWithJobsets :: App [ProjectWithJobsets]
-getProjectsWithJobsets =
-  fmap (uncurry makeProjectWithJobsets . second toList)
-  . groupSortOn projectName
-  <$> (runHydraQueryWithConnection projectsWithJobsetsQuery :: App [(Project, JobsetNullable)])
-
+ 
+  
 makeProjectWithJobsets :: Project -> [JobsetNullable] -> ProjectWithJobsets
 makeProjectWithJobsets p jms =
   let js = catMaybes (fromNullableJobset <$> jms)
@@ -137,53 +132,46 @@ groupSortOn f = fmap (\x -> (fst $ NE.head x, fmap snd x))
           . NE.groupWith (f . fst)
           . sortOn (f . fst)
 
-
-getProjectsWithJobsetsWithStatus :: App [ProjectWithJobsetsWithStatus]
-getProjectsWithJobsetsWithStatus = getProjectsWithJobsets >>= addStatus 
-
-addStatus :: [ProjectWithJobsets] -> App [ProjectWithJobsetsWithStatus]
-addStatus projectsWithJobsets = sequence (addStatusByProject <$>  projectsWithJobsets )
-
-addStatusByProject :: ProjectWithJobsets -> App (ProjectWithJobsetsWithStatus)
-addStatusByProject projectWithJobsets = do 
-    jobsets <- sequence $ addStatusByJobset <$>  projectWithJobsetsJobsets projectWithJobsets
-    return (ProjectWithJobsetsWithStatus  { project =  projectWithJobsetsProject projectWithJobsets
-                                          , jobsets = jobsets   
-                                          }
-           )
-
-addStatusByJobset :: Jobset -> App (JobsetWithStatus)
-addStatusByJobset jobset = do 
-    jobsetStatus <- getJobsetStatus (jobsetName jobset) (jobsetProject jobset)  
-    return (JobsetWithStatus { jobset = jobset
-                             , jobsetStatus = jobsetStatus
-                             }
-           )
-
-getJobsetStatus :: Text -> Text -> App (JobsetStatus)
-getJobsetStatus jobsetName jobsetProject= do
-    (succeed, builds, lastevaluatedAt) <- getSucceededFailedLastEvaluated jobsetName jobsetProject
-    queued <- getQueued jobsetName jobsetProject
-    return (JobsetStatus  { succeed = succeed
-                          , failed =  (-) <$> builds <*> Just ( fromMaybe 0 succeed) 
-                          , queued = queued
-                          , lastevaluatedAt = lastevaluatedAt
-                          })
-
-getSucceededFailedLastEvaluated :: Text -> Text -> App((Maybe Int32, Maybe Int32, Int32))
-getSucceededFailedLastEvaluated jobsetName jobsetProject = (fromMaybe (Just 0, Just 0, 0)) <$> (headMay <$> runHydraQueryWithConnection (jobsetSucceedFailedLastEvaluatedQuery  jobsetName jobsetProject))
-
-getQueued :: Text -> Text -> App(Maybe Int64)
-getQueued jobsetName jobsetProject = headMay <$> runHydraQueryWithConnection (jobsetQueueLengthQuery jobsetName jobsetProject)  ;
-
-getProjectWithJobsetsWithStatus :: Text -> App (Maybe ProjectWithJobsetsWithStatus)
-getProjectWithJobsetsWithStatus projectId = (getProjectWithJobsets projectId) >>=  sequence.(fmap addStatusByProject)  
-
-getProjectWithJobsets :: Text -> App (Maybe ProjectWithJobsets)
-getProjectWithJobsets projectId =  headMay <$> fmap (uncurry makeProjectWithJobsets . second toList)
-  . groupSortOn projectName
-  <$> (runHydraQueryWithConnection (projectWithJobsetsQuery projectId) :: App [(Project, JobsetNullable)]) 
-
 getJobsetEvals :: Text -> Text -> App [Jobseteval]
 getJobsetEvals projectName jobsetName = runHydraQueryWithConnection (jobsetevalsQuery projectName jobsetName)
+
+
+getProjectWithJobsetsWithStatus :: Text -> App (Maybe ProjectWithJobsetsWithStatus)
+getProjectWithJobsetsWithStatus projectname = fmap headMay $  fmap (uncurry makeProjectWithJobsetsWithStatus . second toList)
+  . groupSortOnWihtStatus projectName
+  <$> (getRidOfNullable <$>) <$> (runHydraQueryWithConnection (projectsWithJobsetWithStatusQuery projectname) :: App [(Project, JobsetNullable, Maybe Int64, Maybe Int64, Maybe Int64, Maybe Int32 )])
  
+makeProjectWithJobsetsWithStatus :: Project -> [Maybe JobsetWithStatus] -> ProjectWithJobsetsWithStatus
+makeProjectWithJobsetsWithStatus p jms =
+  let js = catMaybes jms
+  in ProjectWithJobsetsWithStatus p js
+
+groupSortOnWihtStatus :: Ord k => (Project -> k) -> [(Project, Maybe Jobset, Int64, Int64, Int64, Maybe(Int32))] -> [(Project, NE.NonEmpty (Maybe JobsetWithStatus))]
+groupSortOnWihtStatus f = fmap (\x -> (fst6 $ NE.head x, fmap createJobsetWithStatus x))
+          . NE.groupWith (f . fst6)
+          . sortOn (f . fst6)
+
+fst6 :: (a,b,c,d,e,f) -> a
+fst6 (a,_,_,_,_,_) = a
+
+createJobsetWithStatus :: (Project, Maybe Jobset, Int64, Int64, Int64, Maybe(Int32)) -> Maybe JobsetWithStatus
+createJobsetWithStatus (_, Just jobset, queued, failed, succeeded, lastevaluatedAt) = Just JobsetWithStatus { jobset = jobset
+                                                                                 , jobsetStatus = jobsetstatus
+                                                                                 }
+                                                                                 where jobsetstatus = JobsetStatus  { succeeded = succeeded
+                                                                                                                    , failed = failed
+                                                                                                                    , queued = queued 
+                                                                                                                    , lastevaluatedAt = lastevaluatedAt
+                                                                                                                    }
+createJobsetWithStatus (_, Nothing, queued, failed, succeeded, lastevaluatedAt) = Nothing                                                                         
+
+getProjectsWithJobsetsWithStatus :: App [ProjectWithJobsetsWithStatus]
+getProjectsWithJobsetsWithStatus =
+  fmap (uncurry makeProjectWithJobsetsWithStatus . second toList)
+  . groupSortOnWihtStatus projectName
+  <$> (fmap getRidOfNullable ) 
+  <$> (runHydraQueryWithConnection (projectsWithJobsetWithStatusQuery (pack "")):: App [(Project, JobsetNullable, Maybe Int64, Maybe Int64, Maybe Int64, Maybe Int32 )])
+
+getRidOfNullable :: (Project, JobsetNullable, Maybe Int64, Maybe Int64, Maybe Int64, Maybe Int32)  -> (Project, Maybe Jobset, Int64, Int64, Int64, Maybe Int32)
+getRidOfNullable (p, j, queued, failed, succeeded, lastEvaluatedAt)  = (p, js, fromMaybe 0 queued, fromMaybe 0 failed, fromMaybe 0 succeeded, lastEvaluatedAt)
+  where js = fromNullableJobset j
