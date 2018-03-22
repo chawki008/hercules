@@ -2,7 +2,6 @@ module Pages.Jobset exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Material.Menu as Menu
 import Material.List as List
 import Material.Options as Options
 import Material.Tabs as Tabs
@@ -92,11 +91,11 @@ view model =
                                                     [ Table.td []
                                                         [ a
                                                             (onClickPage (Urls.Jobset "123" "foo"))
-                                                            [ text "123" ]
+                                                            [ text (toString evaluation.id) ]
                                                         ]
                                                     , Table.td [] [ text "snabbBsrc → e1fdc74" ]
-                                                    , Table.td [] (statusLabels 145 62 23)
-                                                    , Table.td [] [ text "2016-08-05 13:43:40" ]
+                                                    , Table.td [] (statusLabels evaluation.jobSummary.succeeded evaluation.jobSummary.failed evaluation.jobSummary.inQueue)
+                                                    , Table.td [] [ text  evaluation.evaluatedAt ]
                                                     ]
                                             )
                                     )

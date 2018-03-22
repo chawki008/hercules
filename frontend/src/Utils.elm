@@ -11,7 +11,9 @@ import Material.Icon as Icon
 import Material.Options as Options
 import Msg exposing (..)
 import Urls exposing (..)
-import Models exposing (..)
+import Models exposing (..) 
+import Hercules as H
+import Date
 
 
 menuIcon : String -> Html Msg
@@ -137,3 +139,94 @@ renderHeader model name subname page =
             [ style [ ( "margin-bottom", "30px" ) ] ]
             ([ text name ] ++ subnameHtml ++ pageHtml)
         ]
+
+mapProjectWithJobsets : Maybe H.ProjectWithJobsetsWithStatus -> Project 
+mapProjectWithJobsets  maybeProjectWithJobsets = 
+
+                    case maybeProjectWithJobsets of 
+
+                        Just projectWithJobsets -> 
+                            { id = projectWithJobsets.project.projectName
+                            , name = projectWithJobsets.project.projectDisplayname
+                            , description = Maybe.withDefault "" projectWithJobsets.project.projectDescription 
+                            , isShown = True
+                            , jobsets = List.map mapJobset projectWithJobsets.jobsets
+                            }
+
+                        Nothing ->  { id = "no Project exists having this name"
+                                    , name = ""
+                                    , description =""
+                                    , isShown = True
+                                    , jobsets = []
+                                    }
+        
+
+mapProject : H.Project -> Project
+mapProject project = 
+              { id = project.projectName
+              , name = project.projectDisplayname
+              , description = Maybe.withDefault "" project.projectDescription 
+              , isShown = True
+              , jobsets = []
+              }
+
+
+mapJobset : H.JobsetWithStatus -> Jobset
+mapJobset jobsetWithStatus = 
+    { id = jobsetWithStatus.jobset.jobsetName
+    , name = jobsetWithStatus.jobset.jobsetName
+    , description = Maybe.withDefault ""  jobsetWithStatus.jobset.jobsetDescription
+    , queued =  jobsetWithStatus.jobsetStatus.queued
+    , failed =  jobsetWithStatus.jobsetStatus.failed
+    , succeeded =  jobsetWithStatus.jobsetStatus.succeeded
+    , isShown = True
+    , lastEvaluation =  timestampToString (Maybe.withDefault 0 jobsetWithStatus.jobsetStatus.lastevaluatedAt)
+    } 
+                       
+                      
+mapJobsetevalsToJobsetPage : List (H.Jobseteval) -> JobsetPage
+mapJobsetevalsToJobsetPage jobsetevals = 
+    let 
+        latestJobsetEval = Maybe.withDefault  { jobsetevalId = 0
+                                            , jobsetevalProject = ""
+                                            , jobsetevalJobset =  ""
+                                            , jobsetevalTimestamp = 0
+                                            , jobsetevalCheckouttime = 0
+                                            , jobsetevalEvaltime = 0
+                                            , jobsetevalHasnewbuilds = 0
+                                            , jobsetevalHash = ""
+                                            , jobsetevalNrbuilds = Just 0
+                                            , jobsetevalNrsucceeded = Just 0
+                                            } 
+                                            (List.head jobsetevals) 
+    in
+        { latestCheckTime = "2016-08-06 12:38:01"
+        , latestEvaluationTime = timestampToString latestJobsetEval.jobsetevalTimestamp
+        , latestFinishedEvaluationTime = "2016-08-06 12:38:01"
+        , evaluations = List.map mapJobsetevalToEval jobsetevals
+        , name = latestJobsetEval.jobsetevalJobset
+        }
+
+mapJobsetevalToEval : H.Jobseteval -> Evaluation
+mapJobsetevalToEval jobseteval =  
+    { id = jobseteval.jobsetevalId
+    , inputChanges = "dsds"
+    , jobSummary = { succeeded = Maybe.withDefault 0 jobseteval.jobsetevalNrsucceeded 
+                , failed = (Maybe.withDefault 0 jobseteval.jobsetevalNrbuilds) - (Maybe.withDefault 0 jobseteval.jobsetevalNrsucceeded) 
+                , inQueue  =  Maybe.withDefault 0 jobseteval.jobsetevalNrsucceeded 
+                }
+    , evaluatedAt = timestampToString jobseteval.jobsetevalTimestamp
+    }  
+
+timestampToString : Int -> String         
+timestampToString timstamp = 
+    let 
+        evaluatedAt = Date.fromTime (toFloat (timstamp*1000))
+        year = toString (Date.year evaluatedAt)
+        month = toString (Date.month evaluatedAt)
+        day = toString (Date.day evaluatedAt)
+        hours = toString (Date.hour evaluatedAt)
+        minutes = toString (Date.minute evaluatedAt)
+        seconds  = toString (Date.second  evaluatedAt)
+    in 
+        year ++ "-" ++ month ++ "-" ++ day ++ " " ++ hours ++ ":" ++ minutes ++ ":" ++ seconds

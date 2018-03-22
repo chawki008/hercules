@@ -9,7 +9,7 @@ import Urls exposing (..)
 import UrlParser exposing (parsePath)
 import Hercules as H
 import Http
-import Date 
+import Utils as U
 
 
 update : Msg -> AppModel -> ( AppModel, Cmd Msg )
@@ -60,15 +60,15 @@ update msg model =
             case page of 
                 Jobset projectId jobsetName -> 
                     model ! [Navigation.newUrl (pageToURL page)
-                            , Http.send GetJobsetEvals  (H.getJobsetEvals "/api" projectId jobsetName ) ] 
+                            , Http.send GetJobsetEvals  (H.getProjectByProjectNameByJobsetNameJobsetevals "/api" projectId jobsetName ) ] 
 
                 Project projectId  -> 
                     model ! [Navigation.newUrl (pageToURL page)
-                            , Http.send GetProjectWithJobsets  (H.getProjectWithJobsets "/api" projectId ) ] 
+                            , Http.send GetProjectWithJobsets  (H.getProjectWithJobsetsByProjectId "/api" projectId ) ] 
 
                 Home ->
                     model ! [Navigation.newUrl (pageToURL page) 
-                            , Http.send GetProjects  (H.getProjects "/api")  ]    
+                            , Http.send GetProjects  (H.getProject "/api")  ]    
                 _ ->    
                     ( model, Navigation.newUrl (pageToURL Home) )
 
@@ -85,7 +85,7 @@ update msg model =
             )
             
         GetProjects (Ok json) ->
-            ( { model | projects = List.map H.mapProject json }, Cmd.none )
+            ( { model | projects = List.map U.mapProject json }, Cmd.none )
 
         GetProjects (Err e) ->
             ( Debug.log (toString e) model, Cmd.none ) 
@@ -93,7 +93,7 @@ update msg model =
         GetProjectWithJobsets (Ok json) ->
             let 
                 oldProjects = model.projects
-                newProject = H.mapProjectWithJobsets json
+                newProject = U.mapProjectWithJobsets json
                 updateProject : Project -> Project
                 updateProject project = if project.id == newProject.id then newProject else project
                 updatedProjects = List.map updateProject oldProjects 
@@ -107,7 +107,7 @@ update msg model =
             ( Debug.log (toString e) model, Cmd.none ) 
 
         GetJobsetEvals (Ok json) ->
-            ({ model | jobsetPage = Ok (H.mapJobsetevalsToJobsetPage json) }, Cmd.none )
+            ({ model | jobsetPage = Ok (U.mapJobsetevalsToJobsetPage json) }, Cmd.none )
 
         GetJobsetEvals (Err e) ->
             ( Debug.log (toString e) model, Cmd.none ) 

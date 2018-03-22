@@ -3,6 +3,7 @@ secret.key
 
 #-- Elm
 docs/_build/
+frontend/src/Hercules.elm
 elm-stuff/
 frontend/index.html
 node_modules/
