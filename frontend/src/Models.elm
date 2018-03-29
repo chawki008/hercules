@@ -100,8 +100,8 @@ type alias AppModel =
     { alert : Maybe Alert
     , hydraConfig : HydraConfig
     , projects : List Project
-    , jobsets : Result AjaxError (List Jobset)
-    , jobsetPage : Result AjaxError JobsetPage
+    , jobsets : Result (AjaxError String) (List Jobset)
+    , jobsetPage : Result (AjaxError String) JobsetPage
     , user : Maybe User
     , mdl : Material.Model
     , queueStats : QueueStats
@@ -150,20 +150,7 @@ initialModel page flags =
         , queueStats =
             QueueStats 124 32345 19
             -- Pages
-        , jobsetPage =
-            Ok
-                { latestCheckTime =  "2016-08-06 12:38:01"
-                , latestEvaluationTime =  "2016-08-06 17:45:55"
-                , latestFinishedEvaluationTime =  "2016-08-06 17:45:55"
-                , name = "Hardcodedfoobar"
-                , evaluations =
-                    [ { id = 123
-                      , inputChanges = "snabbBsrc → e1fdc74"
-                      , jobSummary = { succeeded = 145, failed = 62, inQueue = 23 }
-                      , evaluatedAt =  "2016-08-05 13:43:40"
-                      }
-                    ]
-                }
+        , jobsetPage =  Err (AjaxFail "no jobset yet") 
         , jobsets = Ok []
         , projects =
             [ { id = "nixos"

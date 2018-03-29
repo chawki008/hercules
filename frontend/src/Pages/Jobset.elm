@@ -50,7 +50,7 @@ view model =
                                 [ List.li [ List.withSubtitle ]
                                     [ List.content []
                                         [ text "Lastest check"
-                                        , List.subtitle [] [ text "2016-08-06 12:38:01" ]
+                                        , List.subtitle [] [ text jobset.latestCheckTime ]
                                         ]
                                     ]
                                 , List.li [ List.withSubtitle ]
@@ -59,7 +59,7 @@ view model =
                                         , List.subtitle []
                                             [ a
                                                 [ href "TODO" ]
-                                                [ text "2016-08-06 17:45:55" ]
+                                                [ text jobset.latestEvaluationTime ]
                                             ]
                                         ]
                                     ]
@@ -69,7 +69,7 @@ view model =
                                         , List.subtitle []
                                             [ a
                                                 [ href "TODO" ]
-                                                [ text "2016-08-06 17:45:55" ]
+                                                [ text jobset.latestFinishedEvaluationTime ]
                                             ]
                                         ]
                                     ]
@@ -78,7 +78,7 @@ view model =
                                 [ Table.thead []
                                     [ Table.tr []
                                         [ Table.th [] [ text "#" ]
-                                        , Table.th [] [ text "Input chages" ]
+                                        , Table.th [] [ text "Input changes" ]
                                         , Table.th [] [ text "Job status" ]
                                         , Table.th [] [ text "Time" ]
                                         ]
@@ -93,7 +93,7 @@ view model =
                                                             (onClickPage (Urls.Jobset "123" "foo"))
                                                             [ text (toString evaluation.id) ]
                                                         ]
-                                                    , Table.td [] [ text "snabbBsrc → e1fdc74" ]
+                                                    , Table.td [] [ text evaluation.inputChanges ]
                                                     , Table.td [] (statusLabels evaluation.jobSummary.succeeded evaluation.jobSummary.failed evaluation.jobSummary.inQueue)
                                                     , Table.td [] [ text  evaluation.evaluatedAt ]
                                                     ]

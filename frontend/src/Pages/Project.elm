@@ -31,7 +31,7 @@ view model page =
                     [ renderProjectWithDetails model 0 project ]
 
                 Nothing ->
-                    render404 ("Project " ++ id ++ " does not exist.")
+                    render404 ("Project does not exist.")
 
         NewProject ->
             newProjectView model

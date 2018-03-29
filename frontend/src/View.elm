@@ -2,7 +2,6 @@ module View exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Maybe
 import List
 import Material.Scheme
 import Material.Color as Color
@@ -98,14 +97,11 @@ pageToView model =
             Pages.Project.view model model.currentPage
 
         Jobset projectId jobsetName ->
-            case List.head (List.filter (\p -> p.id == projectId) model.projects) of
-                Just project ->
-                    case List.head (List.filter (\j -> j.name == jobsetName) project.jobsets) of
-                        Just jobset ->
+                    case model.jobsetPage of
+                        Ok _ ->
                             Jobset.view model
 
-                        Nothing ->
+                        Err _ ->
                             render404 ("Jobset " ++ jobsetName ++ " does not exist.")
 
-                Nothing ->
-                    render404 ("Project " ++ projectId ++ " does not exist.")
+               

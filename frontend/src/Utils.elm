@@ -14,7 +14,7 @@ import Urls exposing (..)
 import Models exposing (..) 
 import Hercules as H
 import Date
-
+import String exposing (slice, dropRight)
 
 menuIcon : String -> Html Msg
 menuIcon name =
@@ -153,7 +153,7 @@ mapProjectWithJobsets  maybeProjectWithJobsets =
                             , jobsets = List.map mapJobset projectWithJobsets.jobsets
                             }
 
-                        Nothing ->  { id = "no Project exists having this name"
+                        Nothing ->  { id = ""
                                     , name = ""
                                     , description =""
                                     , isShown = True
@@ -176,48 +176,71 @@ mapJobset jobsetWithStatus =
     { id = jobsetWithStatus.jobset.jobsetName
     , name = jobsetWithStatus.jobset.jobsetName
     , description = Maybe.withDefault ""  jobsetWithStatus.jobset.jobsetDescription
-    , queued =  jobsetWithStatus.jobsetStatus.queued
-    , failed =  jobsetWithStatus.jobsetStatus.failed
-    , succeeded =  jobsetWithStatus.jobsetStatus.succeeded
+    , queued =  jobsetWithStatus.jobsetStatus.jobsetNrqueued
+    , failed =  jobsetWithStatus.jobsetStatus.jobsetNrfailed
+    , succeeded =  jobsetWithStatus.jobsetStatus.jobsetNrsucceeded
     , isShown = True
-    , lastEvaluation =  timestampToString (Maybe.withDefault 0 jobsetWithStatus.jobsetStatus.lastevaluatedAt)
+    , lastEvaluation =  timestampToString (Maybe.withDefault 0 jobsetWithStatus.jobsetStatus.jobsetLastevaluatedAt)
     } 
                        
                       
-mapJobsetevalsToJobsetPage : List (H.Jobseteval) -> JobsetPage
+mapJobsetevalsToJobsetPage : List (H.JobsetevalWithStatus) -> JobsetPage
 mapJobsetevalsToJobsetPage jobsetevals = 
     let 
-        latestJobsetEval = Maybe.withDefault  { jobsetevalId = 0
-                                            , jobsetevalProject = ""
-                                            , jobsetevalJobset =  ""
-                                            , jobsetevalTimestamp = 0
-                                            , jobsetevalCheckouttime = 0
-                                            , jobsetevalEvaltime = 0
-                                            , jobsetevalHasnewbuilds = 0
-                                            , jobsetevalHash = ""
-                                            , jobsetevalNrbuilds = Just 0
-                                            , jobsetevalNrsucceeded = Just 0
-                                            } 
+        latestJobsetEval = Maybe.withDefault  {jobseteval = { jobsetevalId = 0
+                                                            , jobsetevalProject = ""
+                                                            , jobsetevalJobset =  ""
+                                                            , jobsetevalTimestamp = 0
+                                                            , jobsetevalCheckouttime = 0
+                                                            , jobsetevalEvaltime = 0
+                                                            , jobsetevalHasnewbuilds = 0
+                                                            , jobsetevalHash = ""
+                                                            , jobsetevalNrbuilds = Just 0
+                                                            , jobsetevalNrsucceeded = Just 0
+                                                            } 
+                                              , jobsetevalChangedInputs = []              
+                                              , jobsetevalSucceeded = 0
+                                              , jobsetevalQueued = 0  
+                                              }
                                             (List.head jobsetevals) 
     in
-        { latestCheckTime = "2016-08-06 12:38:01"
-        , latestEvaluationTime = timestampToString latestJobsetEval.jobsetevalTimestamp
-        , latestFinishedEvaluationTime = "2016-08-06 12:38:01"
+        { latestCheckTime = "2018-Feb-14 21:38:01"
+        , latestEvaluationTime = timestampToString latestJobsetEval.jobseteval.jobsetevalTimestamp
+        , latestFinishedEvaluationTime = "2018-Feb-14 12:38:01"
         , evaluations = List.map mapJobsetevalToEval jobsetevals
-        , name = latestJobsetEval.jobsetevalJobset
+        , name = latestJobsetEval.jobseteval.jobsetevalJobset
         }
 
-mapJobsetevalToEval : H.Jobseteval -> Evaluation
-mapJobsetevalToEval jobseteval =  
-    { id = jobseteval.jobsetevalId
-    , inputChanges = "dsds"
-    , jobSummary = { succeeded = Maybe.withDefault 0 jobseteval.jobsetevalNrsucceeded 
-                , failed = (Maybe.withDefault 0 jobseteval.jobsetevalNrbuilds) - (Maybe.withDefault 0 jobseteval.jobsetevalNrsucceeded) 
-                , inQueue  =  Maybe.withDefault 0 jobseteval.jobsetevalNrsucceeded 
+mapJobsetevalToEval : H.JobsetevalWithStatus -> Evaluation
+mapJobsetevalToEval jobsetevalwithstatus =  
+    { id = jobsetevalwithstatus.jobseteval.jobsetevalId
+    , inputChanges = strFromEvalInputs jobsetevalwithstatus.jobsetevalChangedInputs
+    , jobSummary = { succeeded = jobsetevalwithstatus.jobsetevalSucceeded
+                , failed = (Maybe.withDefault 0 jobsetevalwithstatus.jobseteval.jobsetevalNrbuilds) - jobsetevalwithstatus.jobsetevalSucceeded
+                , inQueue  = jobsetevalwithstatus.jobsetevalQueued 
                 }
-    , evaluatedAt = timestampToString jobseteval.jobsetevalTimestamp
+    , evaluatedAt = timestampToString jobsetevalwithstatus.jobseteval.jobsetevalTimestamp
     }  
+strFromEvalInputs : List (H.Jobsetevalinput) -> String
+strFromEvalInputs changedInputs = dropRight 2 (List.foldl printInput "" changedInputs)
 
+printInput : H.Jobsetevalinput -> String -> String 
+printInput input result = result ++ input.jobsetevalinputName ++ " → " ++ (renderShortInput input)  ++ ", "
+
+renderShortInput : H.Jobsetevalinput -> String 
+renderShortInput input = let 
+                            revision = Maybe.withDefault "" input.jobsetevalinputRevision   
+                        in
+                            case input.jobsetevalinputType of      
+                                    "svn" -> revision
+                                    "svn-checkout" -> revision
+                                    "bzr" -> revision
+                                    "bzr-checkout" -> revision
+                                    "git" -> slice 0 7 revision
+                                    "hg" -> slice 0 12 revision
+                                    -- "build" -> slice 0 12 revision
+                                    _ -> revision
+                                
 timestampToString : Int -> String         
 timestampToString timstamp = 
     let 

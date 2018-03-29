@@ -59,16 +59,16 @@ update msg model =
         NewPage page ->
             case page of 
                 Jobset projectId jobsetName -> 
-                    model ! [Navigation.newUrl (pageToURL page)
-                            , Http.send GetJobsetEvals  (H.getProjectByProjectNameByJobsetNameJobsetevals "/api" projectId jobsetName ) ] 
+                    {model | jobsetPage = Err (AjaxFail "no jobsets yet") } ! [Navigation.newUrl (pageToURL page)
+                            , Http.send GetJobsetEvals  (H.getProjectsByProjectNameByJobsetNameJobsetevals "/api" projectId jobsetName ) ] 
 
                 Project projectId  -> 
                     model ! [Navigation.newUrl (pageToURL page)
-                            , Http.send GetProjectWithJobsets  (H.getProjectWithJobsetsByProjectId "/api" projectId ) ] 
+                            ,Http.send GetProjectWithJobsets  (H.getProjectsWithJobsetsByProjectId "/api" projectId ) ] 
 
                 Home ->
                     model ! [Navigation.newUrl (pageToURL page) 
-                            , Http.send GetProjects  (H.getProject "/api")  ]    
+                            , Http.send GetProjects  (H.getProjects "/api")  ]    
                 _ ->    
                     ( model, Navigation.newUrl (pageToURL Home) )
 
@@ -90,10 +90,10 @@ update msg model =
         GetProjects (Err e) ->
             ( Debug.log (toString e) model, Cmd.none ) 
         
-        GetProjectWithJobsets (Ok json) ->
+        GetProjectWithJobsets (Ok project) ->
             let 
                 oldProjects = model.projects
-                newProject = U.mapProjectWithJobsets json
+                newProject = U.mapProjectWithJobsets project
                 updateProject : Project -> Project
                 updateProject project = if project.id == newProject.id then newProject else project
                 updatedProjects = List.map updateProject oldProjects 
