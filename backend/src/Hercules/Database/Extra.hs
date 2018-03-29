@@ -7,6 +7,7 @@ module Hercules.Database.Extra
   , ProjectWithJobsetsWithStatus(..)
   , JobsetWithStatus(..)
   , JobsetStatus(..)
+  , JobsetevalWithStatus(..)
   , module Hercules.Database.Hydra 
   ) where
 
@@ -29,10 +30,10 @@ data JobsetWithStatus = JobsetWithStatus
   deriving(Generic)
 
 data JobsetStatus = JobsetStatus
-  { succeeded ::  Int64
-  , failed ::  Int64
-  , queued ::  Int64
-  , lastevaluatedAt :: Maybe Int32
+  { jobsetNrsucceeded ::  Int64
+  , jobsetNrfailed ::  Int64
+  , jobsetNrqueued ::  Int64
+  , jobsetLastevaluatedAt :: Maybe Int32
   }
   deriving(Generic)
 
@@ -41,6 +42,15 @@ data ProjectWithJobsetsWithStatus = ProjectWithJobsetsWithStatus
   , jobsets :: [JobsetWithStatus]
   }
   deriving(Generic)
+
+data JobsetevalWithStatus = JobsetevalWithStatus
+  { jobseteval :: Jobseteval
+  , jobsetevalChangedInputs :: [Jobsetevalinput]
+  , jobsetevalSucceeded :: Int64
+  , jobsetevalQueued :: Int64  
+  }
+  deriving(Generic, Eq)
+
 
 instance ToJSON ProjectWithJobsets where
 instance ElmType ProjectWithJobsets where
@@ -53,3 +63,6 @@ instance ElmType JobsetStatus where
 
 instance ToJSON ProjectWithJobsetsWithStatus where
 instance ElmType ProjectWithJobsetsWithStatus where
+
+instance ToJSON JobsetevalWithStatus where
+instance ElmType JobsetevalWithStatus where

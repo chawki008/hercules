@@ -43,6 +43,12 @@ spec elmexportoptions = Spec ["Hercules"]
               : toElmDecoderSourceWith elmoptions      (Proxy :: Proxy JobsetStatus)
               : toElmTypeSourceWith elmoptions         (Proxy :: Proxy Jobseteval)
               : toElmDecoderSourceWith elmoptions      (Proxy :: Proxy Jobseteval)
+              : toElmTypeSourceWith elmoptions         (Proxy :: Proxy Job)
+              : toElmDecoderSourceWith elmoptions      (Proxy :: Proxy Job)
+              : toElmTypeSourceWith elmoptions         (Proxy :: Proxy JobsetevalWithStatus)
+              : toElmDecoderSourceWith elmoptions      (Proxy :: Proxy JobsetevalWithStatus)
+              : toElmTypeSourceWith elmoptions         (Proxy :: Proxy Jobsetevalinput)
+              : toElmDecoderSourceWith elmoptions      (Proxy :: Proxy Jobsetevalinput)
               : generateElmForAPIWith elmexportoptions (Proxy :: Proxy QueryAPI)
             )
 

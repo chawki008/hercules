@@ -34,6 +34,9 @@ library
                        Hercules.OAuth.User
                        Hercules.Query.Hercules
                        Hercules.Query.Hydra
+                       Hercules.Query.Jobsets
+                       Hercules.Query.Jobsetevals
+                       Hercules.Helpers
                        Hercules.ServerEnv
                        Hercules.Static
                        Hercules.Swagger

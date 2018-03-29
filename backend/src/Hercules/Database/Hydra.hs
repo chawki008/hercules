@@ -715,10 +715,14 @@ data Job' c1 c2 c3 =
     , jobJobset  :: c2
     , jobName    :: c3
     }
+  deriving(Generic)
 
 type Job = Job' Text Text Text
 
 type JobReadColumns = Job' (Column PGText) (Column PGText) (Column PGText)
+
+instance ToJSON Job where
+instance ElmType Job where
 
 type JobWriteColumns = Job' (Column PGText) (Column PGText) (Column PGText)
 
@@ -755,8 +759,12 @@ data Jobsetevalinput' c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 =
     , jobsetevalinputPath       :: c9
     , jobsetevalinputSha256Hash :: c10
     }
-
+  deriving (Generic, Eq)
+  
 type Jobsetevalinput = Jobsetevalinput' Int32 Text Int32 Text (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Int32) (Maybe Text) (Maybe Text)
+
+instance ToJSON Jobsetevalinput where
+instance ElmType Jobsetevalinput where
 
 type JobsetevalinputReadColumns = Jobsetevalinput' (Column PGInt4) (Column PGText) (Column PGInt4) (Column PGText) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGText))
 
@@ -835,7 +843,7 @@ data Jobseteval' c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 =
     , jobsetevalNrbuilds     :: c9
     , jobsetevalNrsucceeded  :: c10
     }
-  deriving(Generic)
+  deriving(Generic, Eq)
 
 type Jobseteval = Jobseteval' Int32 Text Text Int32 Int32 Int32 Int32 Text (Maybe Int32) (Maybe Int32)
 
