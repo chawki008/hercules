@@ -5,6 +5,7 @@
 module Hercules.Lib
   ( startApp
   , swaggerDoc
+  , getAppForTest
   ) where
 
 import Control.Monad                        (join)
@@ -43,6 +44,7 @@ import Hercules.Static
 import Hercules.Swagger
 import Hercules.Helpers
 import Data.List                            (sortOn)
+import Data.Yaml                      (decodeFileEither, prettyPrintParseException)
 
 startApp :: Config -> IO ()
 startApp config = do
@@ -62,6 +64,19 @@ loggingMiddleware config = case configAccessLogLevel config of
   Enabled     -> logStdout
   Development -> logStdoutDev
 
+getAppForTest :: FilePath -> IO Application 
+getAppForTest yaml = 
+  let 
+    authenticators = configAuthenticatorList 
+  in 
+    decodeFileEither yaml >>= \case
+    Left err -> error (prettyPrintParseException err)
+    Right config ->
+      newEnv config (authenticators config)>>= \case
+        Nothing -> error "Can't create env"
+        Just env -> app env
+
+  
 app :: Env -> IO Application
 app env = do
   let api = Proxy :: Proxy API
