@@ -282,8 +282,11 @@ data Build' c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15 c16 c17 c18 c19 c
     , buildReleasename    :: c28
     , buildKeep           :: c29
     }
-
+    deriving (Generic)
 type Build = Build' Int32 Int32 Int32 Text Text Text (Maybe Text) (Maybe Text) Text Text (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Int32) (Maybe Int32) Int32 (Maybe Int32) (Maybe Text) (Maybe Text) Int32 Int32 (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Int64) (Maybe Int64) (Maybe Text) Int32
+
+instance ToJSON Build where
+instance ElmType Build where
 
 type BuildReadColumns = Build' (Column PGInt4) (Column PGInt4) (Column PGInt4) (Column PGText) (Column PGText) (Column PGText) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column PGText) (Column PGText) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column PGInt4) (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column PGInt4) (Column PGInt4) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGInt8)) (Column (Nullable PGInt8)) (Column (Nullable PGText)) (Column PGInt4)
 

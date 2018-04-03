@@ -24,7 +24,6 @@ import Options.Applicative
 import Hercules.API
 import Hercules.Database.Extra
 
-
 elmoptions :: Options
 elmoptions = Options {fieldLabelModifier = replace "'" ""}
 
@@ -49,6 +48,10 @@ spec elmexportoptions = Spec ["Hercules"]
               : toElmDecoderSourceWith elmoptions      (Proxy :: Proxy JobsetevalWithStatus)
               : toElmTypeSourceWith elmoptions         (Proxy :: Proxy Jobsetevalinput)
               : toElmDecoderSourceWith elmoptions      (Proxy :: Proxy Jobsetevalinput)
+              : toElmTypeSourceWith elmoptions         (Proxy :: Proxy JobsetevalWithBuilds)
+              : toElmDecoderSourceWith elmoptions      (Proxy :: Proxy JobsetevalWithBuilds)
+              : toElmTypeSourceWith elmoptions         (Proxy :: Proxy Build)
+              : toElmDecoderSourceWith elmoptions      (Proxy :: Proxy Build)
               : generateElmForAPIWith elmexportoptions (Proxy :: Proxy QueryAPI)
             )
 

@@ -26,13 +26,15 @@ import Data.Foldable                        (toList)
 import Servant.Swagger.UI
 
 import qualified Data.Text.IO       as T
+import qualified Data.List.NonEmpty as NE
+import Data.Maybe                           (catMaybes)
 
 import Hercules.API
 import Hercules.Config
 import Hercules.Database.Extra       (JobsetNullable, Project, JobsetevalinputNullable
-                                     , Jobseteval, Job
+                                     , Jobseteval, Job, Build, JobsetevalWithBuilds(..), BuildNullable
                                      , ProjectWithJobsetsWithStatus (..), JobsetevalWithStatus(..)
-                                     , jobsetevalId, projectName)
+                                     , jobsetevalId, projectName, fromNullableBuild)
 import Hercules.OAuth
 import Hercules.OAuth.Authenticators
 import Hercules.Query.Hydra
@@ -40,6 +42,7 @@ import Hercules.ServerEnv
 import Hercules.Static
 import Hercules.Swagger
 import Hercules.Helpers
+import Data.List                            (sortOn)
 
 startApp :: Config -> IO ()
 startApp config = do
@@ -82,7 +85,7 @@ server env = enter (Nat (runApp env)) api :<|> serveSwagger
                       :<|> getProjectsWithJobsetsWithStatus
                       :<|> getProjectWithJobsetsWithStatus
                       :<|> getJobsetEvals
-                      :<|> getJobsetJobs
+                      :<|> getJobsetevalsWithBuilds
         protected = getUser
 
 (.:) :: (c -> d) -> (a -> b -> c) -> a -> b -> d
@@ -108,6 +111,25 @@ withAuthenticated f = \case
     logNotice "Failed user authentication attempt"
     throwError err401
 
+getJobsetevalsWithBuilds :: Text -> Text -> App [JobsetevalWithBuilds]
+getJobsetevalsWithBuilds projectNameArg jobset = Prelude.take 10 <$>  (makeJobsetevalsWithBuilds . groupSortJobsetevalsWithBuilds) 
+                                                <$> (runHydraQueryWithConnection $ jobsetevalsWithBuildsQuery projectNameArg jobset) 
+
+makeJobsetevalsWithBuilds ::  [(Jobseteval, NE.NonEmpty (Maybe Build))] -> [JobsetevalWithBuilds]
+makeJobsetevalsWithBuilds  = fmap makeJobsetevalWithBuilds
+
+makeJobsetevalWithBuilds :: (Jobseteval, NE.NonEmpty (Maybe Build)) -> JobsetevalWithBuilds
+makeJobsetevalWithBuilds jobsetevalsWBuilds = JobsetevalWithBuilds { jobsetevalWithBuildsEval = fst jobsetevalsWBuilds
+                                                                   , builds = Prelude.take 250 $ (catMaybes . toList .snd) jobsetevalsWBuilds 
+                                                                   }
+
+groupSortJobsetevalsWithBuilds ::  [(Jobseteval, BuildNullable)] -> [(Jobseteval, NE.NonEmpty (Maybe Build))]
+groupSortJobsetevalsWithBuilds  = fmap (\x -> (fst $ NE.head x, fmap createBuilds x))
+          . NE.groupWith (jobsetevalId . fst)
+          . sortOn (jobsetevalId . fst)
+    where 
+      createBuilds = fromNullableBuild . snd 
+
 getProjectNames :: App [Text]
 getProjectNames = runHydraQueryWithConnection projectNameQuery
 
@@ -119,7 +141,7 @@ getProjects = runHydraQueryWithConnection projectsQuery
  
 getJobsetEvals :: Text -> Text -> App [JobsetevalWithStatus]
 getJobsetEvals projectNameArg jobsetNameArg = updateChangedInputs <$> (fmap makeJobsetevalWithStatus . groupSortOnJobsetevals jobsetevalId
- <$> (runHydraQueryWithConnection (jobsetevalsWithStatusQuery projectNameArg jobsetNameArg)::App [(Jobseteval, Maybe Int64, Maybe Int64, JobsetevalinputNullable)]))
+ <$> (runHydraQueryWithConnection (jobsetevalsWithStatusQuery projectNameArg jobsetNameArg):: App [(Jobseteval, Maybe Int64, Maybe Int64, JobsetevalinputNullable)]))
 
 getProjectWithJobsetsWithStatus :: Text -> App (Maybe ProjectWithJobsetsWithStatus)
 getProjectWithJobsetsWithStatus projectNameArg = fmap headMay $ fmap (uncurry makeProjectWithJobsetsWithStatus . second toList)

@@ -12,6 +12,7 @@ module Hercules.Query.Hydra
   , projectsWithJobsetWithStatusQuery
   , jobsetjobsQuery
   , jobsetevalsWithStatusQuery
+  , jobsetevalsWithBuildsQuery
   ) where
 
 import Control.Arrow (returnA)

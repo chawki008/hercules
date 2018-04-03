@@ -8,6 +8,7 @@ database concerning jobsetevals
 -}
 module Hercules.Query.Jobsetevals
   ( jobsetevalsWithStatusQuery
+  , jobsetevalsWithBuildsQuery
   ) where
 
 
@@ -16,6 +17,11 @@ import Data.Text
 import Opaleye
 import Data.Profunctor.Product (p2)
 import Hercules.Database.Hydra
+
+jobsetevalsWithBuildsQuery :: Text -> Text -> Query (JobsetevalReadColumns, BuildNullableColumns)
+jobsetevalsWithBuildsQuery project jobset = jobsetevalsBuildsQuery jobsetevals 
+  where 
+    jobsetevals = jobsetevalsQuery project jobset 
 
 -- query to get a jobset's eval within its status ( nrSucceeded, nrQueued, jobsetevalInputs) given the project and jobset names
 jobsetevalsWithStatusQuery :: Text -> Text -> Query (JobsetevalReadColumns, Column (Nullable PGInt8), Column (Nullable PGInt8), JobsetevalinputNullableColumns)
