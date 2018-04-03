@@ -4,7 +4,7 @@ import Material
 import Maybe
 import Date
 import Urls exposing (..)
-
+import Hercules as H
 
 type alias Flags =
     { backendURL : String
@@ -81,13 +81,20 @@ type alias Evaluation =
     , evaluatedAt : String
     }
 
-
+type alias Job = 
+    { name : String
+-- (timestamp, status, finished)
+    , infos : List (Int, Int, Int) 
+    }
 type alias JobsetPage =
     { latestCheckTime : String
     , latestEvaluationTime : String
     , latestFinishedEvaluationTime : String
     , evaluations : List Evaluation
+    , jobs : List Job
     , name : String
+    , project : String
+    , selectedTab : Int 
     }
 
 

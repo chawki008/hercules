@@ -112,7 +112,45 @@ update msg model =
         GetJobsetEvals (Err e) ->
             ( Debug.log (toString e) model, Cmd.none ) 
 
--- Ports
+        SelectTab tabNum ->
+            let 
+                okOldJobsetPage = model.jobsetPage 
+                jobsetProject = getJobsetProjectFromJobsetpage okOldJobsetPage
+                jobset = Tuple.first jobsetProject 
+                project = Tuple.second jobsetProject
+            in     
+                case tabNum of 
+                    1 -> 
+                        (model, Http.send GetJobsInfo  (H.getProjectsByProjectNameByJobsetNameJobs "/api" project jobset))
+                    _ -> 
+                        (model, Http.send GetJobsetEvals  (H.getProjectsByProjectNameByJobsetNameJobsetevals "/api" project jobset))
 
+        GetJobsInfo (Ok jobsInfo) -> 
+            let 
+                okOldJobsetPage = model.jobsetPage 
+                newJobsetPage = updateJobsetPage okOldJobsetPage jobsInfo
+
+            in
+                ({model | jobsetPage = newJobsetPage }, Cmd.none )
+       
+        GetJobsInfo (Err e ) ->
+            ( Debug.log (toString e) model, Cmd.none ) 
+
+-- Ports
+updateJobsetPage : Result (AjaxError String) JobsetPage -> List (H.JobsetevalWithBuilds) -> Result (AjaxError String) JobsetPage
+updateJobsetPage okOldJobsetPage jobs = case okOldJobsetPage of
+                                        Ok oldJobsetPage -> 
+                                            let 
+                                                oldJobsetPage1 = { oldJobsetPage | selectedTab = 1}
+                                            in
+                                                Ok {oldJobsetPage1 | jobs = Debug.log "jobs" (U.mapToJobs jobs)}
+                                        _ -> 
+                                             Err (AjaxFail "no jobset yet") 
+getJobsetProjectFromJobsetpage : Result (AjaxError String) JobsetPage -> (String, String)
+getJobsetProjectFromJobsetpage okJobsetPage = case okJobsetPage of 
+                                Ok jobsetPage ->
+                                    (jobsetPage.name, jobsetPage.project)
+                                _ -> 
+                                    ("", "")    
 
 port title : String -> Cmd msg

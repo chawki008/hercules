@@ -5,7 +5,8 @@ import Http
 import Navigation
 import Components.LiveSearch as LiveSearch
 import Urls exposing (Page)
-import Hercules exposing (Project, ProjectWithJobsetsWithStatus, JobsetevalWithStatus)
+import Hercules exposing (Project, ProjectWithJobsetsWithStatus
+                         , JobsetevalWithStatus, JobsetevalWithBuilds)
 
 
 type LoginType
@@ -27,4 +28,5 @@ type Msg
     | GetProjects (Result Http.Error (List Project))
     | GetProjectWithJobsets (Result Http.Error (Maybe ProjectWithJobsetsWithStatus))
     | GetJobsetEvals (Result Http.Error (List JobsetevalWithStatus))
-    
+    | SelectTab Int
+    | GetJobsInfo (Result Http.Error (List JobsetevalWithBuilds))

@@ -115,7 +115,7 @@ renderHeader model name subname page =
 
                 Just s ->
                     [ small [ style [ ( "margin-left", "10px" ) ] ]
-                        [ text s ]
+                        [ text (String.toUpper s) ]
                     ]
 
         pageHtml =
@@ -136,8 +136,8 @@ renderHeader model name subname page =
                     ]
     in
         [ h1
-            [ style [ ( "margin-bottom", "30px" ) ] ]
-            ([ text name ] ++ subnameHtml ++ pageHtml)
+            [ style [ ( "margin-bottom", "30px" ), ("color", "rgb(30,50,900)"), ("font-style", "italic") ] ]
+            ( subnameHtml ++ pageHtml)
         ]
 
 mapProjectWithJobsets : Maybe H.ProjectWithJobsetsWithStatus -> Project 
@@ -209,6 +209,9 @@ mapJobsetevalsToJobsetPage jobsetevals =
         , latestFinishedEvaluationTime = "2018-Feb-14 12:38:01"
         , evaluations = List.map mapJobsetevalToEval jobsetevals
         , name = latestJobsetEval.jobseteval.jobsetevalJobset
+        , selectedTab = 0
+        , project = latestJobsetEval.jobseteval.jobsetevalProject
+        , jobs = []
         }
 
 mapJobsetevalToEval : H.JobsetevalWithStatus -> Evaluation
@@ -253,3 +256,64 @@ timestampToString timstamp =
         seconds  = toString (Date.second  evaluatedAt)
     in 
         year ++ "-" ++ month ++ "-" ++ day ++ " " ++ hours ++ ":" ++ minutes ++ ":" ++ seconds
+
+mapToJobs :  List (H.JobsetevalWithBuilds) -> List (Job)
+mapToJobs jobsetevalWithBuilds = List.map (mapToJob jobsetevalWithBuilds) (getAllJobsNames jobsetevalWithBuilds)
+
+mapToJob : List (H.JobsetevalWithBuilds) -> String -> Job
+mapToJob jobsetevalWithBuilds job = 
+                                { name = job
+                                , infos = getJobsInfo jobsetevalWithBuilds job
+                                }
+getAllJobsNames : List (H.JobsetevalWithBuilds) -> List (String)
+getAllJobsNames jobsetevalsWithBuilds = getJobNames (List.head jobsetevalsWithBuilds)
+
+getJobNames : Maybe (H.JobsetevalWithBuilds) -> List (String) 
+getJobNames jobsetevalWithBuilds = case jobsetevalWithBuilds of 
+                                            Nothing -> []
+                                            Just jbewbs -> List.map getJobName jbewbs.builds
+
+getJobName : H.Build -> String 
+getJobName build = build.buildJob
+
+getJobsInfo :   List (H.JobsetevalWithBuilds) -> String -> List (Int, Int, Int)
+getJobsInfo jobsetevalsWithBuilds job = List.map (getJobInfoFromEval job) jobsetevalsWithBuilds 
+
+getJobInfoFromEval : String -> H.JobsetevalWithBuilds -> (Int, Int, Int)
+getJobInfoFromEval job jobsetevalsWithBuilds = let
+                                                    emptyBuild = 
+                                                            { buildId = 0
+                                                            , buildFinished = 0
+                                                            , buildTimestamp = 0
+                                                            , buildProject = ""
+                                                            , buildJobset = ""
+                                                            , buildJob = ""
+                                                            , buildNixname = Nothing
+                                                            , buildDescription = Nothing
+                                                            , buildDrvpath = ""
+                                                            , buildSystem = ""
+                                                            , buildLicense = Nothing
+                                                            , buildHomepage = Nothing
+                                                            , buildMaintainers = Nothing
+                                                            , buildMaxsilent = Nothing
+                                                            , buildTimeout = Nothing
+                                                            , buildIschannel = 0
+                                                            , buildIscurrent = Nothing
+                                                            , buildNixexprinput = Nothing
+                                                            , buildNixexprpath = Nothing
+                                                            , buildPriority = 0
+                                                            , buildGlobalpriority = 0
+                                                            , buildStarttime = Nothing
+                                                            , buildStoptime = Nothing
+                                                            , buildIscachedbuild = Nothing
+                                                            , buildBuildstatus = Nothing
+                                                            , buildSize = Nothing
+                                                            , buildClosuresize = Nothing
+                                                            , buildReleasename = Nothing
+                                                            , buildKeep = 0
+                                                            }
+                                                    jobBuild = Maybe.withDefault emptyBuild (List.head (List.filter (\build -> build.buildJob == job) jobsetevalsWithBuilds.builds))
+                                                    jobStatus = Maybe.withDefault 1 jobBuild.buildBuildstatus
+                                                    jobFinished = jobBuild.buildFinished
+                                               in
+                                                    (jobsetevalsWithBuilds.jobsetevalWithBuildsEval.jobsetevalTimestamp, jobStatus, jobFinished)

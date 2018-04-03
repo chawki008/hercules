@@ -10,7 +10,8 @@ import Models exposing (..)
 import Msg exposing (..)
 import Utils exposing (..)
 import Urls as Urls exposing (..)
-
+import String exposing(slice)
+import Material.Icon as Icon
 
 view : AppModel -> List (Html Msg)
 view model =
@@ -18,14 +19,13 @@ view model =
         Err _ ->
             [ p [] [ text "TODO" ] ]
 
-        Ok jobset ->
-            renderHeader model "Jobset" (Just jobset.name) Nothing
+        Ok jobset -> renderHeader model "Jobset" (Just jobset.name) Nothing
                 ++ [ Tabs.render Mdl
                         [ 4 ]
                         model.mdl
                         [ Tabs.ripple
-                          --, Tabs.onSelectTab SelectTab
-                          --, Tabs.activeTab model.tab
+                          , Tabs.onSelectTab SelectTab
+                          , Tabs.activeTab jobset.selectedTab
                         ]
                         [ Tabs.label
                             [ Options.center ]
@@ -42,8 +42,19 @@ view model =
                             [ Options.span [ Options.css "width" "4px" ] []
                             , text "Channels"
                             ]
-                        ]
-                        (if List.isEmpty [ 1 ] then
+                        ] (renderSelectedTab jobset)]
+
+renderSelectedTab : JobsetPage -> List (Html Msg)
+renderSelectedTab  jobset = 
+    case jobset.selectedTab of 
+        1 -> jobsTab jobset
+        2 -> [ p [] [ text "TODO" ] ]
+        _ -> evaluationsTab  jobset
+            
+        
+evaluationsTab :  JobsetPage -> List (Html Msg)
+evaluationsTab  jobset = 
+                         if List.isEmpty [ 1 ] then
                             render404 "No evaluations yet."
                          else
                             [ List.ul []
@@ -74,7 +85,7 @@ view model =
                                         ]
                                     ]
                                 ]
-                            , Table.table [ Options.css "width" "100%" ]
+                            , Table.table [Options.css "width" "100%"]
                                 [ Table.thead []
                                     [ Table.tr []
                                         [ Table.th [] [ text "#" ]
@@ -93,7 +104,7 @@ view model =
                                                             (onClickPage (Urls.Jobset "123" "foo"))
                                                             [ text (toString evaluation.id) ]
                                                         ]
-                                                    , Table.td [] [ text evaluation.inputChanges ]
+                                                    , Table.td [Options.css  "white-space" "normal"] [ text evaluation.inputChanges ]
                                                     , Table.td [] (statusLabels evaluation.jobSummary.succeeded evaluation.jobSummary.failed evaluation.jobSummary.inQueue)
                                                     , Table.td [] [ text  evaluation.evaluatedAt ]
                                                     ]
@@ -101,5 +112,48 @@ view model =
                                     )
                                 ]
                             ]
+
+jobsTab : JobsetPage -> List (Html Msg)
+jobsTab jobset = 
+                if List.isEmpty [ 1 ] then
+                render404 "No Jobs yet."
+                else
+                [ 
+                 Table.table [ Options.css "width" "100%"]
+                    [ Table.thead []
+                        [ Table.tr []
+                            ([Table.th [] [ text "Job"]]
+                              ++ ((List.take 10 jobset.evaluations)
+                                        |> List.map 
+                                            (\evaluation -> 
+                                                Table.th [Options.css "padding" "0 0px 8px 0px"] [ text (slice 0 11 evaluation.evaluatedAt)]
+                                            )))
+                        ]
+                    , Table.tbody []
+                        (jobset.jobs 
+                            |> List.map 
+                                (\job -> 
+                                    Table.tr []
+                                         ([Table.td [] [text job.name]]
+                                         ++ (job.infos
+                                                |> List.map 
+                                                    (\info ->
+                                                        renderStatus info 
+                                                    )))
+                                
+                                )
                         )
-                   ]
+                    ]
+                ]
+
+renderStatus : (Int, Int, Int) -> (Html Msg)
+renderStatus info = 
+        case info of 
+            (_,_,0) -> 
+                Table.td [Options.css "color" "grey"] [  (Icon.view "help" [Icon.size24]) ]
+            (_,0,_) -> 
+                Table.td [Options.css "color" "green"] [  (Icon.view "checkboxmarkedcircle" [Icon.size18, Options.css "width" "1px"]) ]
+            (_,_,_) -> 
+                 Table.td [Options.css "color" "red"] [  (Icon.view "error" [Icon.size24]) ]
+                                                                                                                                                        
+                   
