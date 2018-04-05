@@ -21,6 +21,7 @@ module Hercules.ServerEnv
   , makeUserJWT
   , getHostAndPort
   , HerculesCipher
+  , runHydraUpdateWithConnection
   ) where
 
 import Control.Monad.Except.Extra
@@ -34,6 +35,7 @@ import Crypto.Random.Entropy
 import Data.ByteString.Extra           as BS (readFileMaybe, writeFile, ByteString)
 import Data.ByteString.Lazy            (toStrict)
 import Data.List                       (find)
+import Data.Int                        (Int64)
 import Data.Maybe                      (fromMaybe)
 import Data.Pool
 import Data.Profunctor.Product.Default (Default)
@@ -46,8 +48,8 @@ import Data.Yaml
 import Database.PostgreSQL.Simple      (Connection, close, connectPostgreSQL)
 import Network.HTTP.Client             as HTTP
 import Network.HTTP.Client.TLS
-import Opaleye                         (Query, QueryRunner, Unpackspec,
-                                        runQuery, showSql)
+import Opaleye                         (Query, QueryRunner, Unpackspec, Table,
+                                        runQuery, showSql, runInsertMany, constant)
 import Say
 import Servant                         (ServantErr)
 import Servant.Auth.Server             (JWTSettings, defaultJWTSettings,
@@ -148,6 +150,14 @@ runHydraQueryWithConnection
 runHydraQueryWithConnection q = do
   logQuery q
   withHydraConnection (\c -> runQuery c q)
+
+
+
+
+-- | Evaluate an update in an 'App' value
+runHydraUpdateWithConnection :: Table columns columns'-> [columns] -> App (Int64)
+runHydraUpdateWithConnection table columns = do
+  withHydraConnection (\c -> runInsertMany c table columns )
 
 logQuery
   :: Default Unpackspec columns columns

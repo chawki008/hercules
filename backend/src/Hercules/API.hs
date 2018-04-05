@@ -30,6 +30,7 @@ type Unprotected =
  :<|> "projectsWithJobsets" :> Capture "projectId" Text :> Get '[JSON] (Maybe ProjectWithJobsetsWithStatus)
  :<|> "projects" :> Capture "projectName" Text :> Capture "jobsetName" Text :> "jobsetevals" :> Get '[JSON] [JobsetevalWithStatus]
  :<|> "projects" :> Capture "projectName" Text :> Capture "jobsetName" Text :> "jobs" :> Get '[JSON] [JobsetevalWithBuilds]
+ :<|> "project" :> ReqBody '[JSON] Project :> Post '[JSON] Text
 
 type Protected = "protected" :> Get '[JSON] Text
 

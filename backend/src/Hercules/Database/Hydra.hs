@@ -1170,6 +1170,7 @@ data Project' c1 c2 c3 c4 c5 c6 c7 =
 type Project = Project' Text Text (Maybe Text) Int32 Int32 Text (Maybe Text)
 
 instance ToJSON Project where
+instance FromJSON Project where
 instance ElmType Project where
 
 type ProjectReadColumns = Project' (Column PGText) (Column PGText) (Column (Nullable PGText)) (Column PGInt4) (Column PGInt4) (Column PGText) (Column (Nullable PGText))

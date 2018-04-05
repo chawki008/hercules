@@ -32,10 +32,10 @@ import Data.Maybe                           (catMaybes)
 
 import Hercules.API
 import Hercules.Config
-import Hercules.Database.Extra       (JobsetNullable, Project, JobsetevalinputNullable
+import Hercules.Database.Extra       (JobsetNullable, Project, JobsetevalinputNullable, Project'(..)
                                      , Jobseteval, Job, Build, JobsetevalWithBuilds(..), BuildNullable
-                                     , ProjectWithJobsetsWithStatus (..), JobsetevalWithStatus(..)
-                                     , jobsetevalId, projectName, fromNullableBuild)
+                                     , ProjectWithJobsetsWithStatus (..), JobsetevalWithStatus(..), ProjectWriteColumns
+                                     , jobsetevalId, projectName, fromNullableBuild, projectTable)
 import Hercules.OAuth
 import Hercules.OAuth.Authenticators
 import Hercules.Query.Hydra
@@ -44,7 +44,8 @@ import Hercules.Static
 import Hercules.Swagger
 import Hercules.Helpers
 import Data.List                            (sortOn)
-import Data.Yaml                      (decodeFileEither, prettyPrintParseException)
+import Data.Yaml                            (decodeFileEither, prettyPrintParseException)
+import Opaleye                              (constant)
 
 startApp :: Config -> IO ()
 startApp config = do
@@ -101,6 +102,7 @@ server env = enter (Nat (runApp env)) api :<|> serveSwagger
                       :<|> getProjectWithJobsetsWithStatus
                       :<|> getJobsetEvals
                       :<|> getJobsetevalsWithBuilds
+                      :<|> addProject 
         protected = getUser
 
 (.:) :: (c -> d) -> (a -> b -> c) -> a -> b -> d
@@ -144,6 +146,32 @@ groupSortJobsetevalsWithBuilds  = fmap (\x -> (fst $ NE.head x, fmap createBuild
           . sortOn (jobsetevalId . fst)
     where 
       createBuilds = fromNullableBuild . snd 
+
+addProject :: Project -> App (Text) 
+addProject project =  do 
+            mProject <- getProject $ projectName project
+            result <- case mProject of 
+                      Just project -> return (-1)
+                      Nothing -> runHydraUpdateWithConnection projectTable [(constant' project)]
+            return (fromIntToMsg result)           
+
+constant' :: Project -> ProjectWriteColumns 
+constant' project = Project { projectName = constant $ projectName project
+                              , projectDisplayname = constant $ projectDisplayname project
+                              , projectDescription = constant $ toMaybe $ projectDescription project
+                              , projectEnabled = constant $ projectEnabled project
+                              , projectHidden = constant $ projectHidden project
+                              , projectOwner = constant $ projectOwner project
+                              , projectHomepage = constant $ toMaybe $ projectHomepage project
+                              }
+toMaybe :: Maybe a -> Maybe (Maybe a)
+toMaybe (Just a) = Just (Just a) 
+toMaybe Nothing = Nothing 
+
+fromIntToMsg :: Int64 -> Text
+fromIntToMsg 0 = pack "Failed to add Project"
+fromIntToMsg (-1) = pack "Project name already exists"
+fromIntToMsg i = pack "Project Added successfully"
 
 getProjectNames :: App [Text]
 getProjectNames = runHydraQueryWithConnection projectNameQuery
