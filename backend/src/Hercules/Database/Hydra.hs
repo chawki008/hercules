@@ -1018,6 +1018,7 @@ data Jobset' c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15 c16 c17 =
 type Jobset = Jobset' Text Text (Maybe Text) Text Text (Maybe Text) (Maybe Int32) (Maybe Int32) (Maybe Int32) Int32 Int32 Int32 Text Int32 Int32 Int32 (Maybe Text)
 
 instance ToJSON Jobset where
+instance FromJSON Jobset where
 instance ElmType Jobset where
 
 type JobsetReadColumns = Jobset' (Column PGText) (Column PGText) (Column (Nullable PGText)) (Column PGText) (Column PGText) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column PGInt4) (Column PGInt4) (Column PGInt4) (Column PGText) (Column PGInt4) (Column PGInt4) (Column PGInt4) (Column (Nullable PGText))

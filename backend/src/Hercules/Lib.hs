@@ -32,10 +32,10 @@ import Data.Maybe                           (catMaybes)
 
 import Hercules.API
 import Hercules.Config
-import Hercules.Database.Extra       (JobsetNullable, Project, JobsetevalinputNullable, Project'(..)
+import Hercules.Database.Extra       (JobsetNullable, Project, JobsetevalinputNullable, Project'(..), Jobset'(..), Jobset, JobsetWithStatus
                                      , Jobseteval, Job, Build, JobsetevalWithBuilds(..), BuildNullable
-                                     , ProjectWithJobsetsWithStatus (..), JobsetevalWithStatus(..), ProjectWriteColumns
-                                     , jobsetevalId, projectName, fromNullableBuild, projectTable)
+                                     , ProjectWithJobsetsWithStatus (..), JobsetevalWithStatus(..), ProjectWriteColumns, JobsetWriteColumns
+                                     , jobsetevalId, projectName, fromNullableBuild, projectTable, jobset, jobsetTable)
 import Hercules.OAuth
 import Hercules.OAuth.Authenticators
 import Hercules.Query.Hydra
@@ -103,6 +103,7 @@ server env = enter (Nat (runApp env)) api :<|> serveSwagger
                       :<|> getJobsetEvals
                       :<|> getJobsetevalsWithBuilds
                       :<|> addProject 
+                      :<|> addJobset 
         protected = getUser
 
 (.:) :: (c -> d) -> (a -> b -> c) -> a -> b -> d
@@ -147,16 +148,30 @@ groupSortJobsetevalsWithBuilds  = fmap (\x -> (fst $ NE.head x, fmap createBuild
     where 
       createBuilds = fromNullableBuild . snd 
 
+addJobset :: Text -> Jobset -> App (Text)
+addJobset projectNameArg jobset =  do 
+    mProject <- getProjectWithJobsetsWithStatus projectNameArg
+    mJobset  <- case mProject of 
+                  Just project -> return $ headMay $ Prelude.filter (eqJobset jobset) (jobsets project)                                    
+                  Nothing -> throwError $ err404 { errBody = "Project doesn't exist" } 
+    _        <- case mJobset of 
+                  Just _ ->  throwError $ err409 { errBody = "jobset already exists" } 
+                  Nothing -> runHydraUpdateWithConnection jobsetTable [(constantJobset jobset projectNameArg)]
+    return ("Jobset added successfully") 
+         
+eqJobset :: Jobset -> JobsetWithStatus -> Bool
+eqJobset jobset1 jobset2 = jobsetName jobset1 == (jobsetName $ jobset jobset2)
+
 addProject :: Project -> App (Text) 
 addProject project =  do 
             mProject <- getProject $ projectName project
-            result <- case mProject of 
-                      Just project -> return (-1)
-                      Nothing -> runHydraUpdateWithConnection projectTable [(constant' project)]
-            return (fromIntToMsg result)           
+            _        <- case mProject of 
+                      Just _ -> throwError $ err409 { errBody = "project already exists" }
+                      Nothing -> runHydraUpdateWithConnection projectTable [(constantProject project)]
+            return ("Project added successfully")           
 
-constant' :: Project -> ProjectWriteColumns 
-constant' project = Project { projectName = constant $ projectName project
+constantProject :: Project -> ProjectWriteColumns 
+constantProject project = Project { projectName = constant $ projectName project
                               , projectDisplayname = constant $ projectDisplayname project
                               , projectDescription = constant $ toMaybe $ projectDescription project
                               , projectEnabled = constant $ projectEnabled project
@@ -164,14 +179,30 @@ constant' project = Project { projectName = constant $ projectName project
                               , projectOwner = constant $ projectOwner project
                               , projectHomepage = constant $ toMaybe $ projectHomepage project
                               }
+
+constantJobset :: Jobset -> Text -> JobsetWriteColumns
+constantJobset jobset jobsetProjectName =  Jobset { jobsetName             =  constant $ jobsetName jobset      
+                                                  , jobsetProject          =  constant $ jobsetProjectName
+                                                  , jobsetDescription      =  constant $ toMaybe $ jobsetDescription  jobset
+                                                  , jobsetNixexprinput     =  constant $ jobsetNixexprinput  jobset
+                                                  , jobsetNixexprpath      =  constant $ jobsetNixexprpath  jobset
+                                                  , jobsetErrormsg         =  constant $ toMaybe $ jobsetErrormsg  jobset
+                                                  , jobsetErrortime        =  constant $ toMaybe $ jobsetErrortime  jobset
+                                                  , jobsetLastcheckedtime  =  constant $ toMaybe $ jobsetLastcheckedtime  jobset
+                                                  , jobsetTriggertime      =  constant $ toMaybe $ jobsetTriggertime  jobset
+                                                  , jobsetEnabled          =  constant $ jobsetEnabled  jobset
+                                                  , jobsetEnableemail      =  constant $ jobsetEnableemail  jobset
+                                                  , jobsetHidden           =  constant $ jobsetHidden  jobset
+                                                  , jobsetEmailoverride    =  constant $ jobsetEmailoverride  jobset
+                                                  , jobsetKeepnr           =  constant $ jobsetKeepnr  jobset
+                                                  , jobsetCheckinterval    =  constant $ jobsetCheckinterval  jobset
+                                                  , jobsetSchedulingshares =  constant $ jobsetSchedulingshares  jobset
+                                                  , jobsetFetcherrormsg    =  constant $ toMaybe $ jobsetFetcherrormsg jobset
+                                                  }   
 toMaybe :: Maybe a -> Maybe (Maybe a)
 toMaybe (Just a) = Just (Just a) 
 toMaybe Nothing = Nothing 
 
-fromIntToMsg :: Int64 -> Text
-fromIntToMsg 0 = pack "Failed to add Project"
-fromIntToMsg (-1) = pack "Project name already exists"
-fromIntToMsg i = pack "Project Added successfully"
 
 getProjectNames :: App [Text]
 getProjectNames = runHydraQueryWithConnection projectNameQuery

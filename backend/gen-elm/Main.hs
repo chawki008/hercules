@@ -32,8 +32,10 @@ spec elmexportoptions = Spec ["Hercules"]
             (defElmImports
               : toElmTypeSourceWith elmoptions         (Proxy :: Proxy Project)
               : toElmDecoderSourceWith elmoptions      (Proxy :: Proxy Project)
+              : toElmEncoderSourceWith elmoptions      (Proxy :: Proxy Project)
               : toElmTypeSourceWith elmoptions         (Proxy :: Proxy Jobset)
               : toElmDecoderSourceWith elmoptions      (Proxy :: Proxy Jobset)
+              : toElmEncoderSourceWith elmoptions      (Proxy :: Proxy Jobset)
               : toElmTypeSourceWith elmoptions         (Proxy :: Proxy ProjectWithJobsetsWithStatus)
               : toElmDecoderSourceWith elmoptions      (Proxy :: Proxy ProjectWithJobsetsWithStatus)
               : toElmTypeSourceWith elmoptions         (Proxy :: Proxy JobsetWithStatus)
