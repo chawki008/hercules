@@ -10,7 +10,8 @@ import UrlParser exposing (parsePath)
 import Hercules as H
 import Http
 import Utils as U
-
+import Array
+import Task 
 
 update : Msg -> AppModel -> ( AppModel, Cmd Msg )
 update msg model =
@@ -69,8 +70,9 @@ update msg model =
                 Home ->
                     model ! [Navigation.newUrl (pageToURL page) 
                             , Http.send GetProjects  (H.getProjects "/api")  ]    
-                _ ->    
-                    ( model, Navigation.newUrl (pageToURL Home) )
+                
+                NewProject -> 
+                    (model, Navigation.newUrl (pageToURL page))
 
         ClickCreateProject ->
             -- TODO: http
@@ -136,7 +138,76 @@ update msg model =
         GetJobsInfo (Err e ) ->
             ( Debug.log (toString e) model, Cmd.none ) 
 
+        SwitchToggle page k  -> 
+            case page of 
+                NewProject -> 
+                    ({model | newProjectPage = updateNewProjectToggle model.newProjectPage k}, Cmd.none)
+                _ -> 
+                    ( model, Cmd.none)
+        UpdateNewProject field value -> 
+            ({ model | newProjectPage = updateNewProjectPage model.newProjectPage field value} , Cmd.none)
+        
+        AddProjectSubmit -> 
+            (model, Http.send AddProject (H.postProjects "/api"  (U.unMapProject (Maybe.withDefault emptyProject model.newProjectPage.project))))
+        
+        AddProject (Ok addResult) -> 
+                let
+                    project = Maybe.withDefault emptyProject model.newProjectPage.project
+                in
+                    (model, Task.succeed (NewPage (Urls.Project project.id)) |> Task.perform identity)
+        AddProject (Err e ) ->
+            ( Debug.log (toString e) model, Cmd.none ) 
 -- Ports
+
+emptyProject : Project 
+emptyProject =  { id = ""
+                , name = ""
+                , description = ""
+                , isShown =  False
+                , isEnabled =  False
+                , jobsets = []
+                , owner = ""
+                , url = ""
+                }
+
+updateNewProjectPage : NewProjectPage -> String -> String -> NewProjectPage
+updateNewProjectPage newProjectPage field value = let 
+                                                    mProject = newProjectPage.project
+                                                  in 
+                                                    case mProject of 
+                                                        Just project -> {newProjectPage | project = Just <| updateProject project field value  }
+                                                        Nothing -> {newProjectPage | project = Just <| updateProject emptyProject field value }
+                    
+updateProject : Project -> String -> String -> Project 
+updateProject project field value =
+              case field of 
+                "id" -> {project | id = value}            
+                "name" -> {project | name = value}            
+                "description" -> {project | description = value}            
+                "owner" -> {project | owner = value}       
+                "url" -> {project | url = value}     
+                _ -> project            
+
+updateNewProjectToggle : NewProjectPage -> Int -> NewProjectPage
+updateNewProjectToggle newProjectPage k = let 
+                                            updtatedToggleProjectPage = {newProjectPage | toggles = Array.set k (U.get k newProjectPage.toggles |> not) newProjectPage.toggles}
+                                            mProject = updtatedToggleProjectPage.project
+                                            updatedProject1 project = {project | isEnabled = U.get 1 updtatedToggleProjectPage.toggles }
+                                            updatedProject2 project = {project | isShown = U.get 0 updtatedToggleProjectPage.toggles }
+                                          in 
+                                            case mProject of 
+                                                Just project -> {updtatedToggleProjectPage | project = Just (Debug.log "project" (project |> updatedProject2 << updatedProject1))}
+                                                Nothing ->      {updtatedToggleProjectPage | project = Just { id = ""
+                                                                                                            , name = ""
+                                                                                                            , description = ""
+                                                                                                            , isShown =  U.get 0 updtatedToggleProjectPage.toggles
+                                                                                                            , isEnabled =  U.get 1 updtatedToggleProjectPage.toggles
+                                                                                                            , jobsets = []
+                                                                                                            , owner = ""      
+                                                                                                            , url = ""                                                              
+                                                                                                            }
+                                                                }
+
 updateJobsetPage : Result (AjaxError String) JobsetPage -> List (H.JobsetevalWithBuilds) -> Result (AjaxError String) JobsetPage
 updateJobsetPage okOldJobsetPage jobs = case okOldJobsetPage of
                                         Ok oldJobsetPage -> 
@@ -146,6 +217,7 @@ updateJobsetPage okOldJobsetPage jobs = case okOldJobsetPage of
                                                 Ok {oldJobsetPage1 | jobs = Debug.log "jobs" (U.mapToJobs jobs)}
                                         _ -> 
                                              Err (AjaxFail "no jobset yet") 
+
 getJobsetProjectFromJobsetpage : Result (AjaxError String) JobsetPage -> (String, String)
 getJobsetProjectFromJobsetpage okJobsetPage = case okJobsetPage of 
                                 Ok jobsetPage ->

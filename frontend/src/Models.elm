@@ -5,6 +5,7 @@ import Maybe
 import Date
 import Urls exposing (..)
 import Hercules as H
+import Array
 
 type alias Flags =
     { backendURL : String
@@ -50,6 +51,9 @@ type alias Project =
     , description : String
     , jobsets : List Jobset
     , isShown : Bool
+    , isEnabled : Bool
+    , owner : String 
+    , url : String
     }
 
 
@@ -102,6 +106,10 @@ type AjaxError msg
     = AjaxFail msg
     | Loading
 
+type alias NewProjectPage = 
+    { project : Maybe Project
+    , toggles : Array.Array Bool
+    }
 
 type alias AppModel =
     { alert : Maybe Alert
@@ -115,6 +123,7 @@ type alias AppModel =
     , searchString : String
     , backendURL : String
     , currentPage : Page
+    , newProjectPage : NewProjectPage
     }
 
 
@@ -143,7 +152,12 @@ initialModel page flags =
             ]
     in
         { alert = Nothing
-        , user = Nothing
+        , user = Just { id = "chawki12121"
+                      , name = "chawki"
+                      , email = "chawki@chawki.com"
+                      , roles = ["Admin"]
+                      , recieveEvaluationErrors = False
+                      }
         , backendURL = flags.backendURL
         , mdl = Material.model
         , currentPage = page
@@ -164,12 +178,18 @@ initialModel page flags =
               , name = "NixOS"
               , description = "the purely functional Linux distribution"
               , isShown = True
+              , isEnabled = True
               , jobsets = jobsets
+              , owner = ""
+              , url = ""
               }
             , { id = "nix"
               , name = "Nix"
               , description = "the purely functional package manager"
               , isShown = True
+              , isEnabled = True
+              , owner = ""
+              , url = ""
               , jobsets =
                     [ { id = "master"
                       , name = "master"
@@ -186,6 +206,9 @@ initialModel page flags =
               , name = "Nixpkgs"
               , description = "Nix Packages collection"
               , isShown = True
+              , isEnabled = True 
+              , owner = ""
+              , url = ""
               , jobsets =
                     [ { id = "trunk"
                       , name = "trunk"
@@ -211,7 +234,13 @@ initialModel page flags =
               , name = "NixOps"
               , description = "Deploying NixOS machines"
               , isShown = True
+              , isEnabled = True
               , jobsets = []
+              , owner = ""
+              , url = ""
               }
             ]
+            , newProjectPage = { project = Nothing
+                               , toggles = Array.fromList [ False, False ]  
+                               }
         }

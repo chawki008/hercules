@@ -15,6 +15,7 @@ import Models exposing (..)
 import Hercules as H
 import Date
 import String exposing (slice, dropRight)
+import Array 
 
 menuIcon : String -> Html Msg
 menuIcon name =
@@ -149,27 +150,50 @@ mapProjectWithJobsets  maybeProjectWithJobsets =
                             { id = projectWithJobsets.project.projectName
                             , name = projectWithJobsets.project.projectDisplayname
                             , description = Maybe.withDefault "" projectWithJobsets.project.projectDescription 
-                            , isShown = True
+                            , isShown = Maybe.withDefault False (boolFromInt projectWithJobsets.project.projectHidden)
+                            , isEnabled = Maybe.withDefault False (boolFromInt projectWithJobsets.project.projectEnabled)
                             , jobsets = List.map mapJobset projectWithJobsets.jobsets
+                            , owner = projectWithJobsets.project.projectOwner
+                            , url = Maybe.withDefault "" projectWithJobsets.project.projectHomepage
                             }
 
                         Nothing ->  { id = ""
                                     , name = ""
                                     , description =""
-                                    , isShown = True
+                                    , isShown = False
+                                    , isEnabled = False
                                     , jobsets = []
+                                    , owner = ""
+                                    , url = ""
                                     }
         
+unMapProject : Project -> H.Project 
+unMapProject project =  { projectName = project.id
+                        , projectDisplayname = project.name
+                        , projectDescription = Just project.description
+                        , projectEnabled = if project.isEnabled then 1 else 0
+                        , projectHidden = if project.isShown then 0 else 1
+                        , projectOwner = project.owner
+                        , projectHomepage = Just project.url
+                        }
 
 mapProject : H.Project -> Project
 mapProject project = 
               { id = project.projectName
               , name = project.projectDisplayname
               , description = Maybe.withDefault "" project.projectDescription 
-              , isShown = True
+              , isShown =  Maybe.withDefault False (boolFromInt project.projectHidden)
+              , isEnabled =  Maybe.withDefault False (boolFromInt project.projectEnabled)
               , jobsets = []
+              , owner = project.projectOwner
+              , url = Maybe.withDefault "" project.projectHomepage
               }
 
+boolFromInt : Int -> Maybe Bool 
+boolFromInt i = case i of 
+                    0 -> Just False
+                    1 -> Just True
+                    _ -> Nothing
 
 mapJobset : H.JobsetWithStatus -> Jobset
 mapJobset jobsetWithStatus = 
@@ -317,3 +341,8 @@ getJobInfoFromEval job jobsetevalsWithBuilds = let
                                                     jobFinished = jobBuild.buildFinished
                                                in
                                                     (jobsetevalsWithBuilds.jobsetevalWithBuildsEval.jobsetevalTimestamp, jobStatus, jobFinished)
+
+                                                    
+get : Int -> Array.Array Bool -> Bool
+get k toggles = 
+  Array.get k toggles |> Maybe.withDefault False

@@ -30,3 +30,7 @@ type Msg
     | GetJobsetEvals (Result Http.Error (List JobsetevalWithStatus))
     | SelectTab Int
     | GetJobsInfo (Result Http.Error (List JobsetevalWithBuilds))
+    | SwitchToggle Page Int 
+    | UpdateNewProject String String
+    | AddProjectSubmit 
+    | AddProject (Result Http.Error (String))

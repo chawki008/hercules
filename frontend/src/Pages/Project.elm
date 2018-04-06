@@ -56,6 +56,9 @@ projectsView model projects =
 
 newProjectView : AppModel -> List (Html Msg)
 newProjectView model =
+    let 
+        project = Maybe.withDefault  (mapProjectWithJobsets Nothing) model.newProjectPage.project
+    in
     renderHeader model "Add a new project" Nothing Nothing
         ++ [ Html.form []
                 [ Textfield.render Mdl
@@ -64,7 +67,9 @@ newProjectView model =
                     [ Textfield.label "Identifier (e.g. hydra)"
                     , Textfield.floatingLabel
                     , Textfield.text_
+                    , Textfield.value project.id
                     , Options.css "display" "block"
+                    , Textfield.onInput (UpdateNewProject "id")
                     ]
                 , Textfield.render Mdl
                     [ 6 ]
@@ -72,6 +77,8 @@ newProjectView model =
                     [ Textfield.label "Display name (e.g. Hydra)"
                     , Textfield.floatingLabel
                     , Textfield.text_
+                    , Textfield.value project.name
+                    , Textfield.onInput (UpdateNewProject "name")
                     , Options.css "display" "block"
                     ]
                 , Textfield.render Mdl
@@ -80,6 +87,8 @@ newProjectView model =
                     [ Textfield.label "Description (e.g. Builds Nix expressions and provides insight about the process)"
                     , Textfield.floatingLabel
                     , Textfield.text_
+                    , Textfield.value project.description
+                    , Textfield.onInput (UpdateNewProject "description")
                     , Options.css "display" "block"
                     ]
                 , Textfield.render Mdl
@@ -88,6 +97,8 @@ newProjectView model =
                     [ Textfield.label "URL (e.g. https://github.com/NixOS/hydra)"
                     , Textfield.floatingLabel
                     , Textfield.text_
+                    , Textfield.value project.url
+                    , Textfield.onInput (UpdateNewProject "url")
                     , Options.css "display" "block"
                     ]
                 ]
@@ -95,14 +106,16 @@ newProjectView model =
                 [ 9 ]
                 model.mdl
                 [ Toggles.ripple
-                  --, Toggles.onClick MyToggleMsg
+                , Toggles.onClick (SwitchToggle NewProject 0)
+                , Toggles.value (get 0 model.newProjectPage.toggles)
                 ]
                 [ text "Is visible on the project list?" ]
            , Toggles.checkbox Mdl
                 [ 10 ]
                 model.mdl
                 [ Toggles.ripple
-                  --, Toggles.onClick MyToggleMsg
+                , Toggles.onClick (SwitchToggle NewProject 1)
+                , Toggles.value (get 1 model.newProjectPage.toggles)
                 ]
                 [ text "Is enabled?" ]
            , Textfield.render Mdl
@@ -113,16 +126,18 @@ newProjectView model =
                 , Textfield.text_
                 , Options.css "display" "block"
                 , Textfield.value (Maybe.withDefault "" (Maybe.map (\u -> u.id) model.user))
+                , Textfield.onInput (UpdateNewProject "owner")
                 ]
            , Button.render Mdl
                 [ 12 ]
                 model.mdl
                 [ Button.raised
                 , Button.colored
-                  --, Button.onClick MyClickMsg
+                , Button.onClick AddProjectSubmit
                 ]
                 [ text "Create project" ]
            ]
+
 
 
 renderProjectWithDetails : AppModel -> Int -> Project -> Html Msg
