@@ -36,7 +36,11 @@ library
                        Hercules.Query.Hydra
                        Hercules.Query.Jobsets
                        Hercules.Query.Jobsetevals
-                       Hercules.Helpers
+                       Hercules.Helpers.Helpers
+                       Hercules.Helpers.JSONParsers
+                       Hercules.Controllers.Jobset
+                       Hercules.Controllers.Jobseteval
+                       Hercules.Controllers.Project
                        Hercules.ServerEnv
                        Hercules.Static
                        Hercules.Swagger
@@ -87,6 +91,7 @@ library
                      , warp
                      , wl-pprint-text
                      , yaml
+                     , unordered-containers
   default-language:    Haskell2010
   ghc-options:         -Wall
 

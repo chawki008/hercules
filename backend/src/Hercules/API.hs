@@ -16,7 +16,7 @@ import Servant.HTML.Blaze
 import Servant.Swagger.UI
 import Text.Blaze.Html5
 
-import Hercules.Database.Extra       (Project, ProjectWithJobsetsWithStatus, JobsetevalWithStatus, JobsetevalWithBuilds)
+import Hercules.Database.Extra       (Project, ProjectWithJobsetsWithStatus, JobsetevalWithStatus, JobsetevalWithBuilds, Jobset, JobsetWithInputs)
 import Hercules.OAuth.Authenticators (AuthenticatorName)
 import Hercules.OAuth.Types          (AuthClientState, AuthCode, AuthError,
                                       AuthStatePacked, FrontendURL)
@@ -30,7 +30,9 @@ type Unprotected =
  :<|> "projectsWithJobsets" :> Capture "projectId" Text :> Get '[JSON] (Maybe ProjectWithJobsetsWithStatus)
  :<|> "projects" :> Capture "projectName" Text :> Capture "jobsetName" Text :> "jobsetevals" :> Get '[JSON] [JobsetevalWithStatus]
  :<|> "projects" :> Capture "projectName" Text :> Capture "jobsetName" Text :> "jobs" :> Get '[JSON] [JobsetevalWithBuilds]
- :<|> "project" :> ReqBody '[JSON] Project :> Post '[JSON] Text
+ :<|> "projects" :> ReqBody '[JSON] Project :> Post '[JSON] Text
+--  :<|> "projects" :> Capture "projectId" Text :> ReqBody '[JSON] Jobset :> Post '[JSON] Text
+ :<|> "projects" :> Capture "projectId" Text :> ReqBody '[JSON] JobsetWithInputs :> Post '[JSON] Text
 
 type Protected = "protected" :> Get '[JSON] Text
 

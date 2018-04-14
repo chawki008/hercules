@@ -9,6 +9,7 @@ module Hercules.Database.Extra
   , JobsetStatus(..)
   , JobsetevalWithStatus(..)
   , JobsetevalWithBuilds(..)
+  , JobsetWithInputs (..)
   , module Hercules.Database.Hydra 
   ) where
 
@@ -58,7 +59,14 @@ data JobsetevalWithBuilds = JobsetevalWithBuilds
   }
   deriving (Generic)
 
+data JobsetWithInputs = JobsetWithInputs 
+  { jobsetWithInputsJobset :: Jobset
+  , jobsetWithInputsInputs :: [Jobsetinput]
+  , jobsetWithInputsInputsalt :: [Jobsetinputalt]
+  } 
+  deriving (Generic)
 
+  
 instance ToJSON ProjectWithJobsets where
 instance ElmType ProjectWithJobsets where
 
@@ -76,3 +84,6 @@ instance ElmType JobsetevalWithStatus where
 
 instance ToJSON JobsetevalWithBuilds where
 instance ElmType JobsetevalWithBuilds where
+
+instance ToJSON JobsetWithInputs where
+instance ElmType JobsetWithInputs where

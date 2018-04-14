@@ -49,7 +49,7 @@ import Database.PostgreSQL.Simple      (Connection, close, connectPostgreSQL)
 import Network.HTTP.Client             as HTTP
 import Network.HTTP.Client.TLS
 import Opaleye                         (Query, QueryRunner, Unpackspec, Table,
-                                        runQuery, showSql, runInsertMany, constant)
+                                        runQuery, showSql, runInsertMany)
 import Say
 import Servant                         (ServantErr)
 import Servant.Auth.Server             (JWTSettings, defaultJWTSettings,

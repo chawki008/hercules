@@ -893,8 +893,12 @@ data Jobsetinputalt' c1 c2 c3 c4 c5 c6 =
     , jobsetinputaltValue    :: c5
     , jobsetinputaltRevision :: c6
     }
+    deriving (Generic)
 
 type Jobsetinputalt = Jobsetinputalt' Text Text Text Int32 (Maybe Text) (Maybe Text)
+
+instance ToJSON Jobsetinputalt where
+instance ElmType Jobsetinputalt where
 
 type JobsetinputaltReadColumns = Jobsetinputalt' (Column PGText) (Column PGText) (Column PGText) (Column PGInt4) (Column (Nullable PGText)) (Column (Nullable PGText))
 
@@ -931,8 +935,12 @@ data Jobsetinput' c1 c2 c3 c4 c5 =
     , jobsetinputType             :: c4
     , jobsetinputEmailresponsible :: c5
     }
+    deriving (Generic)
 
 type Jobsetinput = Jobsetinput' Text Text Text Text Int32
+
+instance ToJSON Jobsetinput where
+instance ElmType Jobsetinput where
 
 type JobsetinputReadColumns = Jobsetinput' (Column PGText) (Column PGText) (Column PGText) (Column PGText) (Column PGInt4)
 

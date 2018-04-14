@@ -29,6 +29,9 @@ instance ToSchema JobsetevalWithStatus where
 instance ToSchema Jobsetevalinput where
 instance ToSchema Build where
 instance ToSchema JobsetevalWithBuilds where
+instance ToSchema Jobsetinput where
+instance ToSchema Jobsetinputalt where
+instance ToSchema JobsetWithInputs where
     
 swaggerDoc :: Swagger
 swaggerDoc = toSwagger (Proxy :: Proxy QueryAPI)
