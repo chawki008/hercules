@@ -1,5 +1,6 @@
 {-# LANGUAGE Arrows          #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 
 {-|
@@ -13,6 +14,8 @@ module Hercules.Query.Jobsets
   , projectsQuery
   , jobsetsQuery
   , projectNameQuery
+  , queueLengthByJobsetQuery
+  , projectByRepoQuery
   ) where
 
 import Control.Arrow (returnA)
@@ -127,4 +130,9 @@ projectNameQuery :: Query (Column PGText)
 projectNameQuery = proc () -> do
   Project{..} <- queryTable projectTable -< ()
   returnA -< projectName
- 
+  
+projectByRepoQuery :: Text -> Query ProjectReadColumns
+projectByRepoQuery repo = proc () -> do
+  project@Project{..} <- queryTable projectTable -< ()
+  restrict -< (Opaleye.fromNullable (pgStrictText "") projectRepo) .== pgStrictText repo
+  returnA -< project

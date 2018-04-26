@@ -1,16 +1,7 @@
 module Hercules.Helpers.Helpers where
 
 import Data.List                            (elemIndex)
-import Data.Foldable                        (toList)
-import Data.Int                              (Int32, Int64)
-import qualified Data.Text                             as T
-import qualified Data.List.NonEmpty as NE
-import Data.Maybe                           (catMaybes, fromMaybe)
-import Hercules.Database.Extra       (JobsetNullable, Project, JobsetevalinputNullable, fromNullableJobsetevalinput
-                                      , JobsetStatus (..), Jobset, Jobseteval, Jobsetevalinput
-                                      , JobsetWithStatus (..), ProjectWithJobsetsWithStatus (..), JobsetevalWithStatus(..)
-                                      , fromNullableJobset, jobsetevalinputName, jobsetevalinputRevision, jobsetevalinputUri
-                                      , jobsetevalinputDependency, jobsetevalinputType )
+import Data.Maybe                           (fromMaybe)
 
 
 toMaybe :: Maybe a -> Maybe (Maybe a)

@@ -32,10 +32,11 @@ import Hercules.OAuth.Authenticators
 import Hercules.ServerEnv
 import Hercules.Static
 import Hercules.Swagger
-import Hercules.Controllers.Jobset          (addJobset, addJobsetWithInputs)
+import Hercules.Controllers.Jobset          (addJobsetWithInputs)
 import Hercules.Controllers.Project         (getProjectNames, getProjects, getProject, getProjectsWithJobsetsWithStatus, getProjectWithJobsetsWithStatus, addProject)
 import Hercules.Controllers.Jobseteval      (getJobsetEvals, getJobsetevalsWithBuilds)
 import Data.Yaml                            (decodeFileEither, prettyPrintParseException)
+import Hercules.Controllers.QueueSummary    (getQueueSummary)
 
 startApp :: Config -> IO ()
 startApp config = do
@@ -95,6 +96,7 @@ server env = enter (Nat (runApp env)) api :<|> serveSwagger
                       :<|> addProject 
                       -- :<|> addJobset 
                       :<|> addJobsetWithInputs 
+                      :<|> getQueueSummary 
         protected = getUser
 
 (.:) :: (c -> d) -> (a -> b -> c) -> a -> b -> d

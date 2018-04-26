@@ -37,10 +37,10 @@ library
                        Hercules.Query.Jobsets
                        Hercules.Query.Jobsetevals
                        Hercules.Helpers.Helpers
-                       Hercules.Helpers.JSONParsers
                        Hercules.Controllers.Jobset
                        Hercules.Controllers.Jobseteval
                        Hercules.Controllers.Project
+                       Hercules.Controllers.QueueSummary
                        Hercules.ServerEnv
                        Hercules.Static
                        Hercules.Swagger
@@ -138,8 +138,10 @@ test-suite test
   main-is:             Spec.hs
   build-depends:       base
                      , hspec
+                     , bytestring
                      , hspec-wai
                      , hspec-wai-json
+                     , hspec-expectations
                      , aeson
                      , transformers
                      , hercules

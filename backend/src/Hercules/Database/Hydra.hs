@@ -1001,7 +1001,7 @@ jobsetrenameTable = Table "jobsetrenames" (pJobsetrename
 
 ---- Types for table: jobsets ----
 
-data Jobset' c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15 c16 c17 =
+data Jobset' c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15 c16 c17 c18 =
   Jobset
     { jobsetName             :: c1
     , jobsetProject          :: c2
@@ -1020,22 +1020,23 @@ data Jobset' c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15 c16 c17 =
     , jobsetCheckinterval    :: c15
     , jobsetSchedulingshares :: c16
     , jobsetFetcherrormsg    :: c17
+    , jobsetForceeval        :: c18
     }
   deriving(Generic)
 
-type Jobset = Jobset' Text Text (Maybe Text) Text Text (Maybe Text) (Maybe Int32) (Maybe Int32) (Maybe Int32) Int32 Int32 Int32 Text Int32 Int32 Int32 (Maybe Text)
+type Jobset = Jobset' Text Text (Maybe Text) Text Text (Maybe Text) (Maybe Int32) (Maybe Int32) (Maybe Int32) Int32 Int32 Int32 Text Int32 Int32 Int32 (Maybe Text) (Maybe Bool)
 
 instance ToJSON Jobset where
 instance FromJSON Jobset where
 instance ElmType Jobset where
 
-type JobsetReadColumns = Jobset' (Column PGText) (Column PGText) (Column (Nullable PGText)) (Column PGText) (Column PGText) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column PGInt4) (Column PGInt4) (Column PGInt4) (Column PGText) (Column PGInt4) (Column PGInt4) (Column PGInt4) (Column (Nullable PGText))
+type JobsetReadColumns = Jobset' (Column PGText) (Column PGText) (Column (Nullable PGText)) (Column PGText) (Column PGText) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column PGInt4) (Column PGInt4) (Column PGInt4) (Column PGText) (Column PGInt4) (Column PGInt4) (Column PGInt4) (Column (Nullable PGText)) (Column (Nullable PGBool))
 
-type JobsetWriteColumns = Jobset' (Column PGText) (Column PGText) (Maybe (Column (Nullable PGText))) (Column PGText) (Column PGText) (Maybe (Column (Nullable PGText))) (Maybe (Column (Nullable PGInt4))) (Maybe (Column (Nullable PGInt4))) (Maybe (Column (Nullable PGInt4))) (Column PGInt4) (Column PGInt4) (Column PGInt4) (Column PGText) (Column PGInt4) (Column PGInt4) (Column PGInt4) (Maybe (Column (Nullable PGText)))
+type JobsetWriteColumns = Jobset' (Column PGText) (Column PGText) (Maybe (Column (Nullable PGText))) (Column PGText) (Column PGText) (Maybe (Column (Nullable PGText))) (Maybe (Column (Nullable PGInt4))) (Maybe (Column (Nullable PGInt4))) (Maybe (Column (Nullable PGInt4))) (Column PGInt4) (Column PGInt4) (Column PGInt4) (Column PGText) (Column PGInt4) (Column PGInt4) (Column PGInt4) (Maybe (Column (Nullable PGText))) (Maybe (Column (Nullable PGBool))) 
 
-type JobsetNullableColumns = Jobset' (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGText))
+type JobsetNullableColumns = Jobset' (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGText))  (Column (Nullable PGBool))
 
-type JobsetNullable = Jobset' (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Text) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Text)
+type JobsetNullable = Jobset' (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Text) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Text) (Maybe Bool)
 
 fromNullableJobset :: JobsetNullable -> Maybe Jobset
 fromNullableJobset = fromNullable
@@ -1062,6 +1063,7 @@ jobsetTable = Table "jobsets" (pJobset
     , jobsetCheckinterval = required "checkinterval"
     , jobsetSchedulingshares = required "schedulingshares"
     , jobsetFetcherrormsg = optional "fetcherrormsg"
+    , jobsetForceeval = optional "forceeval"
     }
   )
 
@@ -1164,7 +1166,7 @@ projectmemberTable = Table "projectmembers" (pProjectmember
 
 ---- Types for table: projects ----
 
-data Project' c1 c2 c3 c4 c5 c6 c7 =
+data Project' c1 c2 c3 c4 c5 c6 c7 c8 =
   Project
     { projectName        :: c1
     , projectDisplayname :: c2
@@ -1173,22 +1175,23 @@ data Project' c1 c2 c3 c4 c5 c6 c7 =
     , projectHidden      :: c5
     , projectOwner       :: c6
     , projectHomepage    :: c7
+    , projectRepo        :: c8
     }
   deriving(Generic)
 
-type Project = Project' Text Text (Maybe Text) Int32 Int32 Text (Maybe Text)
+type Project = Project' Text Text (Maybe Text) Int32 Int32 Text (Maybe Text) (Maybe Text)
 
 instance ToJSON Project where
 instance FromJSON Project where
 instance ElmType Project where
 
-type ProjectReadColumns = Project' (Column PGText) (Column PGText) (Column (Nullable PGText)) (Column PGInt4) (Column PGInt4) (Column PGText) (Column (Nullable PGText))
+type ProjectReadColumns = Project' (Column PGText) (Column PGText) (Column (Nullable PGText)) (Column PGInt4) (Column PGInt4) (Column PGText) (Column (Nullable PGText)) (Column (Nullable PGText))
 
-type ProjectWriteColumns = Project' (Column PGText) (Column PGText) (Maybe (Column (Nullable PGText))) (Column PGInt4) (Column PGInt4) (Column PGText) (Maybe (Column (Nullable PGText)))
+type ProjectWriteColumns = Project' (Column PGText) (Column PGText) (Maybe (Column (Nullable PGText))) (Column PGInt4) (Column PGInt4) (Column PGText) (Maybe (Column (Nullable PGText))) (Maybe (Column (Nullable PGText))) 
 
-type ProjectNullableColumns = Project' (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGText))
+type ProjectNullableColumns = Project' (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText))
 
-type ProjectNullable = Project' (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Int32) (Maybe Int32) (Maybe Text) (Maybe Text)
+type ProjectNullable = Project' (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Int32) (Maybe Int32) (Maybe Text) (Maybe Text) (Maybe Text)
 
 fromNullableProject :: ProjectNullable -> Maybe Project
 fromNullableProject = fromNullable
@@ -1205,6 +1208,7 @@ projectTable = Table "projects" (pProject
     , projectHidden = required "hidden"
     , projectOwner = required "owner"
     , projectHomepage = optional "homepage"
+    , projectRepo = optional "repo"
     }
   )
 

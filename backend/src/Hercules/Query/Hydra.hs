@@ -13,6 +13,8 @@ module Hercules.Query.Hydra
   , jobsetjobsQuery
   , jobsetevalsWithStatusQuery
   , jobsetevalsWithBuildsQuery
+  , queueLengthByJobsetQuery
+  , queueLengthQuery
   ) where
 
 import Control.Arrow (returnA)
@@ -29,3 +31,8 @@ jobsetjobsQuery projectName jobsetName = proc () -> do
   restrict -< ((jobJobset .== pgStrictText jobsetName) .&& (jobProject .== pgStrictText projectName))
   returnA -< job  
 
+queueLengthQuery :: Query (Column PGInt8)
+queueLengthQuery = aggregate countStar (proc () -> do
+  build@Build{..} <- queryTable buildTable -< ()
+  restrict -< (buildFinished .== pgInt4 0)
+  returnA -< build)

@@ -20,7 +20,6 @@ import Hercules.Database.Extra       ( Jobset'(..), Jobset, JobsetWithStatus, Jo
                                      , JobsetWriteColumns, JobsetinputWriteColumns, JobsetinputaltWriteColumns
                                      , jobset, jobsetTable, jobsetinputTable, jobsetinputaltTable, jobsets)
                         
-import Hercules.Helpers.JSONParsers()
 
 addJobsetWithInputs :: Text -> JobsetWithInputs -> App Text
 addJobsetWithInputs projectNameArg jobsetWithInputs = do 
@@ -28,6 +27,7 @@ addJobsetWithInputs projectNameArg jobsetWithInputs = do
     mJobset  <- case mProject of 
                   Just project -> return $ headMay $ Prelude.filter (eqJobset (jobsetWithInputsJobset jobsetWithInputs)) (jobsets project)                                    
                   Nothing -> throwError $ err404 { errBody = "Project doesn't exist" } 
+                  Nothing -> throwError $ err404 { errBody = "project doesn't exist" } 
     case mJobset of 
         Just _ ->  throwError $ err409 { errBody = "jobset already exists" } 
         Nothing -> validateJobsetWithInputs jobsetWithInputs
@@ -101,6 +101,7 @@ constantJobset jobset jobsetProjectName =  Jobset { jobsetName             =  co
                                                   , jobsetCheckinterval    =  constant $ jobsetCheckinterval jobset
                                                   , jobsetSchedulingshares =  constant $ jobsetSchedulingshares jobset
                                                   , jobsetFetcherrormsg    =  constant $ toMaybe $ jobsetFetcherrormsg jobset
+                                                  , jobsetForceeval        =  constant $ toMaybe $ jobsetForceeval     jobset
                                                   }   
 
 constantJobsetinputalt ::Text -> Jobsetinputalt -> JobsetinputaltWriteColumns

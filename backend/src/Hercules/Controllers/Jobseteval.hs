@@ -22,7 +22,7 @@ import Hercules.Helpers.Helpers
 
                                 
 getJobsetevalsWithBuilds :: T.Text -> T.Text -> App [JobsetevalWithBuilds]
-getJobsetevalsWithBuilds projectNameArg jobset = Prelude.take 10 <$>  (makeJobsetevalsWithBuilds . groupSortJobsetevalsWithBuilds) 
+getJobsetevalsWithBuilds projectNameArg jobset = Prelude.take 11 <$>  (makeJobsetevalsWithBuilds . groupSortJobsetevalsWithBuilds) 
                                                 <$> (runHydraQueryWithConnection $ jobsetevalsWithBuildsQuery projectNameArg jobset) 
 
 makeJobsetevalsWithBuilds ::  [(Jobseteval, NE.NonEmpty (Maybe Build))] -> [JobsetevalWithBuilds]
