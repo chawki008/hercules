@@ -26,7 +26,6 @@ addJobsetWithInputs projectNameArg jobsetWithInputs = do
     mProject <- getProjectWithJobsetsWithStatus projectNameArg
     mJobset  <- case mProject of 
                   Just project -> return $ headMay $ Prelude.filter (eqJobset (jobsetWithInputsJobset jobsetWithInputs)) (jobsets project)                                    
-                  Nothing -> throwError $ err404 { errBody = "Project doesn't exist" } 
                   Nothing -> throwError $ err404 { errBody = "project doesn't exist" } 
     case mJobset of 
         Just _ ->  throwError $ err409 { errBody = "jobset already exists" } 

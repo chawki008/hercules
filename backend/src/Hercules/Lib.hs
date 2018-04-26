@@ -36,6 +36,7 @@ import Hercules.Controllers.Jobset          (addJobsetWithInputs)
 import Hercules.Controllers.Project         (getProjectNames, getProjects, getProject, getProjectsWithJobsetsWithStatus, getProjectWithJobsetsWithStatus, addProject)
 import Hercules.Controllers.Jobseteval      (getJobsetEvals, getJobsetevalsWithBuilds)
 import Data.Yaml                            (decodeFileEither, prettyPrintParseException)
+import Hercules.Hooks.Bitbucket             (handlePR)
 import Hercules.Controllers.QueueSummary    (getQueueSummary)
 
 startApp :: Config -> IO ()
@@ -85,6 +86,7 @@ server env = enter (Nat (runApp env)) api :<|> serveSwagger
                 :<|> (mandatory1 .∵ authCallback)
                 :<|> loggedInPage
                 :<|> (join . withAuthenticated userInfoPage)
+                :<|> handlePR
         queryApi = unprotected :<|> protected
         unprotected = getProjectNames
                       :<|> getProjects

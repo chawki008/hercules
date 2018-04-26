@@ -2,9 +2,13 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Hercules.Database.Hercules where
 
+import Data.Aeson
+import Data.Aeson.Types
+import Data.Text.Encoding              (encodeUtf8) 
 import Data.ByteString
 import Data.Profunctor
 import Data.Profunctor.Product
@@ -76,3 +80,41 @@ userTable = Table "users" (pUser
     }
   )
 
+data BitbucketPR' c1 c2 c3 c4 c5 c6 c7 c8 c9 = 
+  BitbucketPR 
+    { bitbucketPRId         :: c1 
+    , bitbucketPRCommit     :: c2
+    , bitbucketPRHeadbranch :: c3
+    , bitbucketPRBasebranch :: c4
+    , bitbucketPRRepo       :: c5 
+    , bitbucketPRState      :: c6
+    , bitbucketPRTitle      :: c7
+    , bitbucketPRCreatedat  :: c8 
+    , bitbucketPRUpdatedat  :: c9
+    }
+   deriving (Show)
+type BitbucketPR = BitbucketPR' Int64 ByteString Text Text Text Text Text Text Text    
+
+instance FromJSON BitbucketPR where 
+  parseJSON j = do 
+           jsonBitbucketPR  <- parseJSON j   
+           id            <- (jsonBitbucketPR .: "pullrequest") >>= (.: "id" )                  :: Parser Int64 
+           commit        <- (jsonBitbucketPR .: "pullrequest") >>= (.: "source")      >>= (.: "commit" ) >>= (.: "hash" ) :: Parser Text  
+           headbranch    <- (jsonBitbucketPR .: "pullrequest") >>= (.: "source")      >>= (.: "branch" ) >>= (.: "name" ) :: Parser Text 
+           basebranch    <- (jsonBitbucketPR .: "pullrequest") >>= (.: "destination") >>= (.: "branch" ) >>= (.: "name" ) :: Parser Text 
+           repo          <- (jsonBitbucketPR .: "repository")  >>= (.: "full_name" )           :: Parser Text  
+           state         <- (jsonBitbucketPR .: "pullrequest") >>= (.: "state" )               :: Parser Text
+           title         <- (jsonBitbucketPR .: "pullrequest") >>= (.: "title" )               :: Parser Text
+           createdat     <- (jsonBitbucketPR .: "pullrequest") >>= (.: "created_on" )          :: Parser Text
+           updatedat     <- (jsonBitbucketPR .: "pullrequest") >>= (.: "updated_on" )          :: Parser Text
+           return BitbucketPR { bitbucketPRId         = id          
+                              , bitbucketPRCommit     = encodeUtf8 commit     
+                              , bitbucketPRHeadbranch = headbranch 
+                              , bitbucketPRBasebranch = basebranch 
+                              , bitbucketPRRepo       = repo        
+                              , bitbucketPRState      = state      
+                              , bitbucketPRTitle      = title      
+                              , bitbucketPRCreatedat  = createdat   
+                              , bitbucketPRUpdatedat  = updatedat  
+                              }
+        

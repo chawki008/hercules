@@ -17,6 +17,7 @@ import Servant.Swagger.UI
 import Text.Blaze.Html5
 
 import Hercules.Database.Extra       (Project, ProjectWithJobsetsWithStatus, JobsetevalWithStatus, JobsetevalWithBuilds, JobsetWithInputs, QueueSummary)
+import Hercules.Database.Hercules
 import Hercules.OAuth.Authenticators (AuthenticatorName)
 import Hercules.OAuth.Types          (AuthClientState, AuthCode, AuthError,
                                       AuthStatePacked, FrontendURL)
@@ -54,6 +55,7 @@ type Pages = "login" :> Get '[HTML] Html
         :<|> "logged-in" :> QueryParam "jwt" Text
                          :> Get '[HTML] Html
         :<|> "repos" :> Auth '[JWT] UserId :> Get '[HTML] Html
+        :<|> "hook"  :> ReqBody '[JSON] BitbucketPR :> Post '[JSON] Text
 
 type API = (QueryAPI
       :<|> Pages

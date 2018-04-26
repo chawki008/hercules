@@ -37,6 +37,7 @@ library
                        Hercules.Query.Jobsets
                        Hercules.Query.Jobsetevals
                        Hercules.Helpers.Helpers
+                       Hercules.Hooks.Bitbucket
                        Hercules.Controllers.Jobset
                        Hercules.Controllers.Jobseteval
                        Hercules.Controllers.Project

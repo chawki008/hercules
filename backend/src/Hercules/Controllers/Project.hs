@@ -44,6 +44,7 @@ constantProject project = Project { projectName = constant $ projectName project
                                   , projectHidden = constant $ projectHidden project
                                   , projectOwner = constant $ projectOwner project
                                   , projectHomepage = constant $ toMaybe $ projectHomepage project
+                                  , projectRepo = constant $ toMaybe $ projectRepo project
                                   }
 
 
