@@ -69,7 +69,8 @@ update msg model =
 
                 Home ->
                     model ! [Navigation.newUrl (pageToURL page) 
-                            , Http.send GetProjects  (H.getProjects "/api")  ]    
+                            , Http.send GetProjects  (H.getProjects "/api") 
+                            , Http.send GetQueueSummary (H.getQueue_summary "/api")]    
                 
                 NewProject -> 
                     (model, Navigation.newUrl (pageToURL page))
@@ -80,6 +81,21 @@ update msg model =
                         newNewJobsetPage = {oldNewJobsetPage | project = project}
                     in
                         ({model | newJobsetPage = newNewJobsetPage}, Navigation.newUrl (pageToURL (NewJobset project)))
+                
+                QueueSummary -> 
+                    model ! [Navigation.newUrl ( Debug.log "sup" pageToURL page)
+                            , Http.send GetQueueSummary (H.getQueue_summary "/api")]
+                
+        GetQueueSummary (Ok queueSummary) ->
+                 let
+                     oldQueueStats = model.queueStats
+                     newQueueStats = {oldQueueStats | numWaiting = queueSummary.queueSummaryAll }
+                     newModel = {model | queueStats = newQueueStats}
+                 in
+                    ({newModel | queueSummary = queueSummary }, Cmd.none)
+        
+        GetQueueSummary (Err e) -> 
+                ( Debug.log (toString e) model, Cmd.none ) 
 
         ClickCreateProject ->
             -- TODO: http
@@ -133,6 +149,13 @@ update msg model =
                         (model, Http.send GetJobsInfo  (H.getProjectsByProjectNameByJobsetNameJobs "/api" project jobset))
                     _ -> 
                         (model, Http.send GetJobsetEvals  (H.getProjectsByProjectNameByJobsetNameJobsetevals "/api" project jobset))
+
+        SelectLayoutTab tabNum ->
+            case tabNum of 
+                1 ->  model ! [Navigation.newUrl ( Debug.log "sup" pageToURL QueueSummary)
+                              , Http.send GetQueueSummary (H.getQueue_summary "/api")]
+
+                _ -> (model, Cmd.none)
 
         GetJobsInfo (Ok jobsInfo) -> 
             let 

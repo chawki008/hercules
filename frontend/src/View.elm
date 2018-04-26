@@ -11,6 +11,7 @@ import Material.Footer as Footer
 import Components.Navbar as Navbar
 import Pages.Project exposing (..)
 import Pages.Jobset as Jobset exposing (..)
+import Pages.Queue as Queue exposing (..)
 import Msg exposing (..)
 import Models exposing (..)
 import Utils exposing (..)
@@ -24,7 +25,8 @@ view model =
         [ Material.Scheme.topWithScheme Color.BlueGrey Color.LightBlue <|
             Layout.render Mdl
                 model.mdl
-                [ Layout.fixedHeader ]
+                [ Layout.onSelectTab SelectLayoutTab
+                , Layout.fixedHeader ]
                 { header = Navbar.view model
                 , drawer = []
                 , tabs = ( Navbar.tabs model, [ Color.background (Color.color Color.LightBlue Color.A700) ] )
@@ -107,3 +109,6 @@ pageToView model =
                
         NewJobset project -> 
                     Jobset.view model model.currentPage
+        
+        QueueSummary -> 
+                    Queue.queueView model 

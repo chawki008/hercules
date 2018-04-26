@@ -6,7 +6,7 @@ import Navigation
 import Components.LiveSearch as LiveSearch
 import Urls exposing (Page)
 import Hercules exposing (Project, ProjectWithJobsetsWithStatus
-                         , JobsetevalWithStatus, JobsetevalWithBuilds)
+                         , JobsetevalWithStatus, JobsetevalWithBuilds, QueueSummary)
 
 
 type LoginType
@@ -28,14 +28,17 @@ type Msg
     | GetProjects (Result Http.Error (List Project))
     | GetProjectWithJobsets (Result Http.Error (Maybe ProjectWithJobsetsWithStatus))
     | GetJobsetEvals (Result Http.Error (List JobsetevalWithStatus))
+    | GetQueueSummary (Result Http.Error QueueSummary)
     | SelectTab Int
     | GetJobsInfo (Result Http.Error (List JobsetevalWithBuilds))
     | SwitchToggle Page Int 
     | UpdateNewProject String String
     | AddProjectSubmit 
-    | AddProject (Result Http.Error (String))    | UpdateNewJobset String String
+    | AddProject (Result Http.Error (String))
+    | Test String
     | UpdateNewJobset String String
     | UpdateNewJobsetInput String Int String
     | AddJobsetInput
     | AddJobsetSubmit 
     | AddJobset (Result Http.Error (String))
+    | SelectLayoutTab Int

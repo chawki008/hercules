@@ -158,6 +158,7 @@ mapProjectWithJobsets  maybeProjectWithJobsets =
                             , jobsets = List.map mapJobset projectWithJobsets.jobsets
                             , owner = projectWithJobsets.project.projectOwner
                             , url = Maybe.withDefault "" projectWithJobsets.project.projectHomepage
+                            , repo = Maybe.withDefault "" projectWithJobsets.project.projectRepo
                             }
 
                         Nothing ->  { id = ""
@@ -168,6 +169,7 @@ mapProjectWithJobsets  maybeProjectWithJobsets =
                                     , jobsets = []
                                     , owner = ""
                                     , url = ""
+                                    , repo = ""
                                     }
         
 unMapProject : Project -> H.Project 
@@ -178,6 +180,7 @@ unMapProject project =  { projectName = project.id
                         , projectHidden = if project.isShown then 0 else 1
                         , projectOwner = project.owner
                         , projectHomepage = Just project.url
+                        , projectRepo = Just project.repo
                         }
 
 mapProject : H.Project -> Project
@@ -190,6 +193,7 @@ mapProject project =
               , jobsets = []
               , owner = project.projectOwner
               , url = Maybe.withDefault "" project.projectHomepage
+              , repo = Maybe.withDefault "" project.projectRepo
               }
 
 boolFromInt : Int -> Maybe Bool 

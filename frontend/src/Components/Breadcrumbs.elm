@@ -64,5 +64,8 @@ breadCrumbs model =
                 NewJobset project ->
                     [ Breadcrumb project Nothing
                     , Breadcrumb "New Jobset" Nothing]    
+                
+                QueueSummary -> 
+                    [ Breadcrumb "Queue Summary" Nothing ]
     in
         renderBreadcrumbs breadcrumbs

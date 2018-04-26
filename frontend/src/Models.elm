@@ -2,7 +2,6 @@ module Models exposing (..)
 
 import Material
 import Maybe
-import Date
 import Urls exposing (..)
 import Hercules as H
 import Array
@@ -54,6 +53,7 @@ type alias Project =
     , isEnabled : Bool
     , owner : String 
     , url : String
+    , repo : String
     }
 
 
@@ -153,6 +153,8 @@ type alias AppModel =
     , backendURL : String
     , currentPage : Page
     , newProjectPage : NewProjectPage
+    , newJobsetPage : NewJobsetPage
+    , queueSummary : H.QueueSummary
     }
 
 
@@ -211,6 +213,7 @@ initialModel page flags =
               , jobsets = jobsets
               , owner = ""
               , url = ""
+              , repo = ""
               }
             , { id = "nix"
               , name = "Nix"
@@ -219,6 +222,7 @@ initialModel page flags =
               , isEnabled = True
               , owner = ""
               , url = ""
+              , repo = ""
               , jobsets =
                     [ { id = "master"
                       , name = "master"
@@ -238,6 +242,7 @@ initialModel page flags =
               , isEnabled = True 
               , owner = ""
               , url = ""
+              , repo = ""
               , jobsets =
                     [ { id = "trunk"
                       , name = "trunk"
@@ -267,6 +272,7 @@ initialModel page flags =
               , jobsets = []
               , owner = ""
               , url = ""
+              , repo = ""
               }
             ]
             , newProjectPage = { project = Nothing
@@ -277,4 +283,10 @@ initialModel page flags =
                               , project = ""  
                               , jobsetInputsNr = 0
                               }
+            , queueSummary = { queueSummaryJobsets = []
+                             , queueSummarySystems = []
+                             , queueSummaryAll = 0
+                             , queueSummaryActif = 0
+                             }
+             
         }
