@@ -61,5 +61,8 @@ breadCrumbs model =
                     [ Breadcrumb project (Just (Urls.Project project))
                     , Breadcrumb jobset Nothing
                     ]
+                NewJobset project ->
+                    [ Breadcrumb project Nothing
+                    , Breadcrumb "New Jobset" Nothing]    
     in
         renderBreadcrumbs breadcrumbs

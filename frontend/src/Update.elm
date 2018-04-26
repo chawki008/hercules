@@ -73,6 +73,13 @@ update msg model =
                 
                 NewProject -> 
                     (model, Navigation.newUrl (pageToURL page))
+                
+                NewJobset project ->
+                    let 
+                        oldNewJobsetPage = model.newJobsetPage
+                        newNewJobsetPage = {oldNewJobsetPage | project = project}
+                    in
+                        ({model | newJobsetPage = newNewJobsetPage}, Navigation.newUrl (pageToURL (NewJobset project)))
 
         ClickCreateProject ->
             -- TODO: http
@@ -142,71 +149,163 @@ update msg model =
             case page of 
                 NewProject -> 
                     ({model | newProjectPage = updateNewProjectToggle model.newProjectPage k}, Cmd.none)
+                NewJobset _ -> 
+                    ({model | newJobsetPage = updateNewJobsetToggle model.newJobsetPage k}, Cmd.none)
                 _ -> 
                     ( model, Cmd.none)
+                    
         UpdateNewProject field value -> 
             ({ model | newProjectPage = updateNewProjectPage model.newProjectPage field value} , Cmd.none)
         
         AddProjectSubmit -> 
-            (model, Http.send AddProject (H.postProjects "/api"  (U.unMapProject (Maybe.withDefault emptyProject model.newProjectPage.project))))
+            (model, Http.send AddProject (H.postProjects "/api"  (U.unMapProject (Maybe.withDefault U.emptyProject model.newProjectPage.project))))
         
         AddProject (Ok addResult) -> 
                 let
-                    project = Maybe.withDefault emptyProject model.newProjectPage.project
+                    project = Maybe.withDefault U.emptyProject model.newProjectPage.project
                 in
                     (model, Task.succeed (NewPage (Urls.Project project.id)) |> Task.perform identity)
+
         AddProject (Err e ) ->
             ( Debug.log (toString e) model, Cmd.none ) 
+        
+        UpdateNewJobset field value -> 
+            ({ model | newJobsetPage = updateNewJobsetPage model.newJobsetPage field value} , Cmd.none)
+
+        UpdateNewJobsetInput field index value -> 
+            ({model | newJobsetPage = updateNewJobsetPageInput model.newJobsetPage field value index}, Cmd.none)
+        
+        AddJobsetInput ->
+            ({model | newJobsetPage = addJobsetInput model.newJobsetPage}, Cmd.none)
+        
+        AddJobsetSubmit -> 
+            (model, Http.send AddJobset (U.postJobset "/api" model.newJobsetPage.project (Maybe.withDefault U.emptyJobsetWithInputs model.newJobsetPage.jobset)))
+        
+        AddJobset (Ok addResult) -> 
+                let
+                    project = model.newJobsetPage.project
+                in
+                    (model, Task.succeed (NewPage (Urls.Project project)) |> Task.perform identity)
+
+        AddJobset (Err e ) ->
+            ( Debug.log (toString e) model, Cmd.none ) 
+        Test str -> ({ model | backendURL = Debug.log "t"  str}, Cmd.none)
+
+        -- NewJobset projectIndex -> model ! [Navigation.newUrl (page)] 
 -- Ports
 
-emptyProject : Project 
-emptyProject =  { id = ""
-                , name = ""
-                , description = ""
-                , isShown =  False
-                , isEnabled =  False
-                , jobsets = []
-                , owner = ""
-                , url = ""
-                }
+addJobsetInput : NewJobsetPage -> NewJobsetPage
+addJobsetInput newJobsetPage = let 
+                                 mJobset = newJobsetPage.jobset  
+                                 newNewJobsetPage = {newJobsetPage | jobsetInputsNr = newJobsetPage.jobsetInputsNr + 1}  
+                               in
+                                 case mJobset of 
+                                    Just jobsetWithInputs -> 
+                                        {newNewJobsetPage | jobset =  Just <| addInput jobsetWithInputs }
+                                    Nothing -> {newNewJobsetPage | jobset = Just <| addInput U.emptyJobsetWithInputs }     
+
+addInput : JobsetWithInputs -> JobsetWithInputs 
+addInput jobsetWithInputs = {jobsetWithInputs | inputs = Array.push U.emptyJobsetInput jobsetWithInputs.inputs}
+
+updateNewJobsetPageInput : NewJobsetPage -> String -> String -> Int -> NewJobsetPage
+updateNewJobsetPageInput newJobsetPage field value index = let
+                                                             mJobset = newJobsetPage.jobset 
+                                                           in
+                                                              case mJobset of 
+                                                                Just jobsetWithInputs -> {newJobsetPage | jobset = Debug.log "" <| Just <| updateJobsetInput jobsetWithInputs field value index}
+                                                                Nothing -> {newJobsetPage | jobset = Just <| updateJobsetInput U.emptyJobsetWithInputs field value index}
+                          
+updateJobsetInput : JobsetWithInputs -> String -> String -> Int -> JobsetWithInputs 
+updateJobsetInput jobsetWithInputs field value index = let 
+                                                        input = updateInput (U.getJobsetInput index jobsetWithInputs.inputs) field value
+                                                       in
+                                                        {jobsetWithInputs | inputs = Array.set index input jobsetWithInputs.inputs}
+
+updateInput : JobsetInput -> String -> String -> JobsetInput 
+updateInput input field value = case field of 
+                             "inputname" -> {input | inputname = value}  
+                             "inputType" -> {input | inputType = value}  
+                             "value"     -> {input | value = value}  
+                             _           -> input
 
 updateNewProjectPage : NewProjectPage -> String -> String -> NewProjectPage
 updateNewProjectPage newProjectPage field value = let 
                                                     mProject = newProjectPage.project
                                                   in 
                                                     case mProject of 
-                                                        Just project -> {newProjectPage | project = Just <| updateProject project field value  }
-                                                        Nothing -> {newProjectPage | project = Just <| updateProject emptyProject field value }
+                                                        Just project -> {newProjectPage | project = Just <| updateProject project field value}
+                                                        Nothing -> {newProjectPage | project = Just <| updateProject U.emptyProject field value}
+
+updateNewJobsetPage : NewJobsetPage -> String -> String -> NewJobsetPage
+updateNewJobsetPage newJobsetPage field value = let 
+                                                    mJobset = newJobsetPage.jobset
+                                                in 
+                                                    case mJobset of 
+                                                        Just jobsetWithInputs -> {newJobsetPage | jobset = Debug.log "" <| Just <| updateJobset jobsetWithInputs field value  }
+                                                        Nothing -> {newJobsetPage | jobset = Just <| updateJobset U.emptyJobsetWithInputs field value }
                     
 updateProject : Project -> String -> String -> Project 
 updateProject project field value =
               case field of 
-                "id" -> {project | id = value}            
-                "name" -> {project | name = value}            
+                "id"          -> {project | id = value}            
+                "name"        -> {project | name = value}            
                 "description" -> {project | description = value}            
-                "owner" -> {project | owner = value}       
-                "url" -> {project | url = value}     
-                _ -> project            
+                "owner"       -> {project | owner = value}       
+                "url"         -> {project | url = value}     
+                "repo"        -> {project | repo = value}     
+                _             -> project     
+
+updateJobset : JobsetWithInputs -> String -> String -> JobsetWithInputs 
+updateJobset jobsetWithInputs field value =
+              case field of 
+                "description"       -> {jobsetWithInputs | description = value}            
+                "name"              -> {jobsetWithInputs | name = value}            
+                "nixexprinput"      -> {jobsetWithInputs | nixexprinput = value}            
+                "nixexprpath"       -> {jobsetWithInputs | nixexprpath = value}       
+                "emailoverride"     -> {jobsetWithInputs | emailoverride = value}   
+                "checkinterval"     -> {jobsetWithInputs | checkinterval = Maybe.withDefault 0 <|Result.toMaybe <| String.toInt value  }  
+                "schedulingshares"  -> {jobsetWithInputs | schedulingshares = Maybe.withDefault 0 <|Result.toMaybe <| String.toInt value  }  
+                "keepnr"            -> {jobsetWithInputs | keepnr = Maybe.withDefault 0 <|Result.toMaybe <| String.toInt value  }  
+                _                   -> jobsetWithInputs            
 
 updateNewProjectToggle : NewProjectPage -> Int -> NewProjectPage
 updateNewProjectToggle newProjectPage k = let 
-                                            updtatedToggleProjectPage = {newProjectPage | toggles = Array.set k (U.get k newProjectPage.toggles |> not) newProjectPage.toggles}
-                                            mProject = updtatedToggleProjectPage.project
-                                            updatedProject1 project = {project | isEnabled = U.get 1 updtatedToggleProjectPage.toggles }
-                                            updatedProject2 project = {project | isShown = U.get 0 updtatedToggleProjectPage.toggles }
+                                            updatedToggleProjectPage = {newProjectPage | toggles = Array.set k (U.get k newProjectPage.toggles |> not) newProjectPage.toggles}
+                                            mProject = updatedToggleProjectPage.project
+                                            updEnab project = {project | isEnabled = U.get 1 updatedToggleProjectPage.toggles }
+                                            updShown project = {project | isShown = U.get 0 updatedToggleProjectPage.toggles }
                                           in 
                                             case mProject of 
-                                                Just project -> {updtatedToggleProjectPage | project = Just (Debug.log "project" (project |> updatedProject2 << updatedProject1))}
-                                                Nothing ->      {updtatedToggleProjectPage | project = Just { id = ""
-                                                                                                            , name = ""
-                                                                                                            , description = ""
-                                                                                                            , isShown =  U.get 0 updtatedToggleProjectPage.toggles
-                                                                                                            , isEnabled =  U.get 1 updtatedToggleProjectPage.toggles
-                                                                                                            , jobsets = []
-                                                                                                            , owner = ""      
-                                                                                                            , url = ""                                                              
-                                                                                                            }
-                                                                }
+                                                Just project -> {updatedToggleProjectPage | project = Just (project |> updShown << updEnab)}
+                                                Nothing->      {updatedToggleProjectPage | project = Just (U.emptyProject |> updShown << updEnab)}
+                                                                
+updateNewJobsetToggle : NewJobsetPage -> Int -> NewJobsetPage
+updateNewJobsetToggle newJobsetPage k = let 
+                                            updatedToggleJobsetPage = updateToggleJobsetPage newJobsetPage k 
+                                            mJobsetWithInputs = updatedToggleJobsetPage.jobset
+                                            updEnab jobsetWithInputs = if k >= 0 && k <= 2 then  {jobsetWithInputs | enabled = k} else jobsetWithInputs
+                                            updVisi jobsetWithInputs = { jobsetWithInputs | hidden = U.get 3 updatedToggleJobsetPage.toggles |> not }
+                                            updEnabEmail jobsetWithInputs = { jobsetWithInputs | enableemail = U.get 4 updatedToggleJobsetPage.toggles }
+                                          in 
+                                            case mJobsetWithInputs of 
+                                                Just jobsetWithInputs -> {updatedToggleJobsetPage | jobset =  Just (jobsetWithInputs |> updEnab << updVisi << updEnabEmail)}
+                                                Nothing -> {updatedToggleJobsetPage | jobset = Just (U.emptyJobsetWithInputs |> updEnab << updVisi << updEnabEmail)}
+                                                                
+                                                                
+updateToggleJobsetPage : NewJobsetPage -> Int -> NewJobsetPage
+updateToggleJobsetPage  newJobsetPage k = 
+                            let 
+                                radioTreatement k = {newJobsetPage | toggles = updateRadio k ((k+1) % 3) ((k+2) % 3) newJobsetPage.toggles}
+                            in
+                                case k of 
+                                    0 -> radioTreatement 0 
+                                    1 -> radioTreatement 1
+                                    2 -> radioTreatement 2
+                                    k -> {newJobsetPage | toggles = Array.set k (U.get k newJobsetPage.toggles |> not) newJobsetPage.toggles}
+
+
+updateRadio :Int -> Int -> Int -> Array.Array Bool -> Array.Array Bool
+updateRadio k0 k1 k2 toggles = Array.set k1 False (Array.set k2 False (Array.set k0 True toggles))
 
 updateJobsetPage : Result (AjaxError String) JobsetPage -> List (H.JobsetevalWithBuilds) -> Result (AjaxError String) JobsetPage
 updateJobsetPage okOldJobsetPage jobs = case okOldJobsetPage of
@@ -214,7 +313,7 @@ updateJobsetPage okOldJobsetPage jobs = case okOldJobsetPage of
                                             let 
                                                 oldJobsetPage1 = { oldJobsetPage | selectedTab = 1}
                                             in
-                                                Ok {oldJobsetPage1 | jobs = Debug.log "jobs" (U.mapToJobs jobs)}
+                                                Ok {oldJobsetPage1 | jobs = U.mapToJobs jobs}
                                         _ -> 
                                              Err (AjaxFail "no jobset yet") 
 

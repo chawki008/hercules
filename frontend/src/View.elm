@@ -99,9 +99,11 @@ pageToView model =
         Jobset projectId jobsetName ->
                     case model.jobsetPage of
                         Ok _ ->
-                            Jobset.view model
+                            Jobset.view model model.currentPage
 
                         Err _ ->
                             render404 ("Jobset " ++ jobsetName ++ " does not exist.")
 
                
+        NewJobset project -> 
+                    Jobset.view model model.currentPage

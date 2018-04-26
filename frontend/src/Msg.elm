@@ -33,4 +33,9 @@ type Msg
     | SwitchToggle Page Int 
     | UpdateNewProject String String
     | AddProjectSubmit 
-    | AddProject (Result Http.Error (String))
+    | AddProject (Result Http.Error (String))    | UpdateNewJobset String String
+    | UpdateNewJobset String String
+    | UpdateNewJobsetInput String Int String
+    | AddJobsetInput
+    | AddJobsetSubmit 
+    | AddJobset (Result Http.Error (String))

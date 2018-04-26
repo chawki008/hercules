@@ -111,6 +111,35 @@ type alias NewProjectPage =
     , toggles : Array.Array Bool
     }
 
+type alias NewJobsetPage = 
+    { jobset : Maybe JobsetWithInputs 
+    , toggles : Array.Array Bool
+    , project : String
+    , jobsetInputsNr : Int
+    }
+
+type alias JobsetWithInputs = 
+    { name: String
+    , enabled: Int
+    , hidden: Bool
+    , description: String
+    , nixexprinput: String
+    , nixexprpath: String
+    , checkinterval: Int
+    , schedulingshares: Int
+    , enableemail: Bool
+    , emailoverride: String
+    , keepnr: Int
+    , inputs : Array.Array JobsetInput
+    }   
+
+type alias JobsetInput =
+    { inputname : String
+    , inputType : String
+    , value : String
+    , emailResponsible : Bool
+    }    
+    
 type alias AppModel =
     { alert : Maybe Alert
     , hydraConfig : HydraConfig
@@ -243,4 +272,9 @@ initialModel page flags =
             , newProjectPage = { project = Nothing
                                , toggles = Array.fromList [ False, False ]  
                                }
+            , newJobsetPage = { jobset = Nothing 
+                              , toggles = Array.fromList [ True, False, False, False, False ]
+                              , project = ""  
+                              , jobsetInputsNr = 0
+                              }
         }

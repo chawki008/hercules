@@ -14,6 +14,7 @@ type Page
     | NewProject
     | Jobset String String
 
+    | NewJobset String 
 
 pageParser : Parser (Page -> a) a
 pageParser =
@@ -22,6 +23,7 @@ pageParser =
         , map Project (s "project" </> string)
         , map NewProject (s "create-project")
         , map Jobset (s "jobset" </> string </> string)
+        , map NewJobset ( s"project" </> string </> s"create-jobset" )
         ]
 
 
@@ -40,6 +42,8 @@ pageToURL page =
         Jobset project jobset ->
             "/jobset/" ++ project ++ "/" ++ jobset
 
+        NewJobset project -> 
+            "/project/" ++ project ++ "/create-jobset" 
 
 pageToTitle : Page -> String
 pageToTitle page =
@@ -52,6 +56,9 @@ pageToTitle page =
 
         NewProject ->
             "New Project"
+        
+        NewJobset project ->
+            "New Jobset " ++ project
 
         Jobset project jobset ->
             "Jobset " ++ jobset ++ " of project " ++ project

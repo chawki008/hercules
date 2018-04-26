@@ -83,7 +83,7 @@ view model =
                 [ Html.map LiveSearchMsg (LiveSearch.view model)
                 , span [] (Maybe.withDefault [] (Maybe.map (\user -> [ text user.name ]) model.user))
                 , Menu.render Mdl
-                    [ 1 ]
+                    [ 0 ]
                     model.mdl
                     [ Menu.ripple
                     , Menu.bottomRight

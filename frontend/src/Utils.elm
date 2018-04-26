@@ -16,6 +16,9 @@ import Hercules as H
 import Date
 import String exposing (slice, dropRight)
 import Array 
+import Json.Encode
+import Http
+
 
 menuIcon : String -> Html Msg
 menuIcon name =
@@ -150,7 +153,7 @@ mapProjectWithJobsets  maybeProjectWithJobsets =
                             { id = projectWithJobsets.project.projectName
                             , name = projectWithJobsets.project.projectDisplayname
                             , description = Maybe.withDefault "" projectWithJobsets.project.projectDescription 
-                            , isShown = Maybe.withDefault False (boolFromInt projectWithJobsets.project.projectHidden)
+                            , isShown = not <| Maybe.withDefault False (boolFromInt projectWithJobsets.project.projectHidden)
                             , isEnabled = Maybe.withDefault False (boolFromInt projectWithJobsets.project.projectEnabled)
                             , jobsets = List.map mapJobset projectWithJobsets.jobsets
                             , owner = projectWithJobsets.project.projectOwner
@@ -182,7 +185,7 @@ mapProject project =
               { id = project.projectName
               , name = project.projectDisplayname
               , description = Maybe.withDefault "" project.projectDescription 
-              , isShown =  Maybe.withDefault False (boolFromInt project.projectHidden)
+              , isShown = not <| Maybe.withDefault False (boolFromInt project.projectHidden)
               , isEnabled =  Maybe.withDefault False (boolFromInt project.projectEnabled)
               , jobsets = []
               , owner = project.projectOwner
@@ -243,7 +246,7 @@ mapJobsetevalToEval jobsetevalwithstatus =
     { id = jobsetevalwithstatus.jobseteval.jobsetevalId
     , inputChanges = strFromEvalInputs jobsetevalwithstatus.jobsetevalChangedInputs
     , jobSummary = { succeeded = jobsetevalwithstatus.jobsetevalSucceeded
-                , failed = (Maybe.withDefault 0 jobsetevalwithstatus.jobseteval.jobsetevalNrbuilds) - jobsetevalwithstatus.jobsetevalSucceeded
+                , failed = (Maybe.withDefault 0 jobsetevalwithstatus.jobseteval.jobsetevalNrbuilds) - jobsetevalwithstatus.jobsetevalSucceeded - jobsetevalwithstatus.jobsetevalQueued
                 , inQueue  = jobsetevalwithstatus.jobsetevalQueued 
                 }
     , evaluatedAt = timestampToString jobsetevalwithstatus.jobseteval.jobsetevalTimestamp
@@ -287,7 +290,7 @@ mapToJobs jobsetevalWithBuilds = List.map (mapToJob jobsetevalWithBuilds) (getAl
 mapToJob : List (H.JobsetevalWithBuilds) -> String -> Job
 mapToJob jobsetevalWithBuilds job = 
                                 { name = job
-                                , infos = getJobsInfo jobsetevalWithBuilds job
+                                , infos = List.reverse <| getJobsInfo jobsetevalWithBuilds job
                                 }
 getAllJobsNames : List (H.JobsetevalWithBuilds) -> List (String)
 getAllJobsNames jobsetevalsWithBuilds = getJobNames (List.head jobsetevalsWithBuilds)
@@ -342,7 +345,91 @@ getJobInfoFromEval job jobsetevalsWithBuilds = let
                                                in
                                                     (jobsetevalsWithBuilds.jobsetevalWithBuildsEval.jobsetevalTimestamp, jobStatus, jobFinished)
 
-                                                    
+emptyProject : Project 
+emptyProject =  { id = ""
+                , name = ""
+                , description = ""
+                , isShown =  False
+                , isEnabled =  False
+                , jobsets = []
+                , owner = ""
+                , url = ""
+                , repo = ""
+                }
+                
+emptyJobsetWithInputs : JobsetWithInputs 
+emptyJobsetWithInputs = { name = ""
+                        , enabled = 0
+                        , hidden = False
+                        , description = ""
+                        , nixexprinput = ""
+                        , nixexprpath = ""
+                        , checkinterval = 1
+                        , schedulingshares = 1
+                        , enableemail = False
+                        , emailoverride = ""
+                        , keepnr = 1
+                        , inputs  = Array.fromList [emptyJobsetInput]
+                        }
+
+emptyJobsetInput : JobsetInput
+emptyJobsetInput =  { inputname = ""
+                    , inputType = "Git"
+                    , value = ""
+                    , emailResponsible = False
+                    }              
+
 get : Int -> Array.Array Bool -> Bool
 get k toggles = 
   Array.get k toggles |> Maybe.withDefault False
+
+getJobsetInput : Int -> Array.Array JobsetInput -> JobsetInput
+getJobsetInput k jobsetInputs = 
+  Array.get k jobsetInputs |> Maybe.withDefault emptyJobsetInput
+
+
+encodeJobsetWithInputs : JobsetWithInputs -> Json.Encode.Value
+encodeJobsetWithInputs x =
+    Json.Encode.object
+        [ ( "name", Json.Encode.string x.name)
+        , ( "enabled", Json.Encode.int x.enabled)
+        , ( "hidden", Json.Encode.bool x.hidden)
+        , ( "description", Json.Encode.string x.description)
+        , ( "nixexprinput", Json.Encode.string x.nixexprinput)
+        , ( "nixexprpath", Json.Encode.string x.nixexprpath)
+        , ( "checkinterval", Json.Encode.int x.checkinterval)
+        , ( "schedulingshares", Json.Encode.int x.schedulingshares)
+        , ( "enableemail", Json.Encode.bool x.enableemail)
+        , ( "emailoverride", Json.Encode.string x.emailoverride)
+        , ( "keepnr", Json.Encode.int x.keepnr)
+        , ( "inputs",  jsonInputs x.inputs) 
+        ]
+        
+jsonInputs : Array.Array JobsetInput -> Json.Encode.Value
+jsonInputs = Json.Encode.object << Array.toList << Array.map jsonInput 
+
+jsonInput : JobsetInput -> (String, Json.Encode.Value) 
+jsonInput jobsetInput = (jobsetInput.inputname, Json.Encode.object [("type", Json.Encode.string jobsetInput.inputType), ("value", Json.Encode.string jobsetInput.value), ("emailresponsible", Json.Encode.bool jobsetInput.emailResponsible)])
+
+postJobset : String -> String -> JobsetWithInputs -> Http.Request (String)
+postJobset urlBase capture_projectId body =
+    Http.request
+        { method =
+            "POST"
+        , headers =
+            []
+        , url =
+            String.join "/"
+                [ urlBase
+                , "projects"
+                , (Debug.log "ss" capture_projectId) |> Http.encodeUri
+                ]
+        , body =
+            Http.jsonBody (encodeJobsetWithInputs body)
+        , expect =
+            Http.expectJson Json.string
+        , timeout =
+            Nothing
+        , withCredentials =
+            False
+        }

@@ -101,6 +101,16 @@ newProjectView model =
                     , Textfield.onInput (UpdateNewProject "url")
                     , Options.css "display" "block"
                     ]
+                , Textfield.render Mdl
+                    [ 13 ]
+                    model.mdl
+                    [ Textfield.label "repository"
+                    , Textfield.floatingLabel
+                    , Textfield.text_
+                    , Textfield.value project.repo
+                    , Textfield.onInput (UpdateNewProject "repo")
+                    , Options.css "display" "block"
+                    ]
                 ]
            , Toggles.checkbox Mdl
                 [ 9 ]
@@ -159,13 +169,14 @@ renderProjectWithDetails model i project =
                 [ text ("(" ++ project.description ++ ")") ]
               -- TODO: correct index
             , Menu.render Mdl
-                [ i + 10 ]
+                [i + 1]
                 model.mdl
                 [ Menu.ripple
                 , Menu.bottomRight
                 , Options.css "float" "right"
                 ]
-                [ Menu.item []
+                [ Menu.item 
+                    [ Menu.onSelect (NewPage (NewJobset (getProject i model).id )) ]
                     [ menuIcon "add"
                     , text "Add a jobset"
                     ]
@@ -232,13 +243,14 @@ renderProject model i project =
                 [ text ("(" ++ project.description ++ ")") ]
               -- TODO: correct index
             , Menu.render Mdl
-                [ i + 10 ]
+                [i + 1]
                 model.mdl
                 [ Menu.ripple
                 , Menu.bottomRight
                 , Options.css "float" "right"
                 ]
-                [ Menu.item []
+                [ Menu.item 
+                    [ Menu.onSelect (NewPage (NewJobset (getProject i model).id )) ]
                     [ menuIcon "add"
                     , text "Add a jobset"
                     ]
@@ -253,3 +265,6 @@ renderProject model i project =
                 ]
             ]
         ]
+
+getProject : Int -> AppModel -> Project
+getProject projectIndex model = Maybe.withDefault emptyProject (List.head (List.drop projectIndex model.projects))
