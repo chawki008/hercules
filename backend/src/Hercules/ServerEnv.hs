@@ -48,8 +48,8 @@ import Data.Yaml
 import Database.PostgreSQL.Simple      (Connection, close, connectPostgreSQL)
 import Network.HTTP.Client             as HTTP
 import Network.HTTP.Client.TLS
-import Opaleye                         (Query, QueryRunner, Unpackspec, Table,
-                                        runQuery, showSql, runInsertMany)
+import Opaleye                         (Query, QueryRunner, Unpackspec, Table, Column, PGBool, 
+                                        runQuery, showSql, runInsertMany, runUpdate)
 import Say
 import Servant                         (ServantErr)
 import Servant.Auth.Server             (JWTSettings, defaultJWTSettings,
@@ -158,6 +158,11 @@ runHydraQueryWithConnection q = do
 runHydraUpdateWithConnection :: Table columns columns'-> [columns] -> App (Int64)
 runHydraUpdateWithConnection table columns = do
   withHydraConnection (\c -> runInsertMany c table columns )
+
+runHerculesUpdateWithConnection ::  Table columnsW columnsR -> (columnsR -> columnsW) -> (columnsR -> Column PGBool ) -> App (Int64) 
+runHerculesUpdateWithConnection table writeColumn matchingPredicate = do 
+  withHerculesConnection (\c -> runUpdate c table writeColumn matchingPredicate )
+
 
 logQuery
   :: Default Unpackspec columns columns

@@ -10,16 +10,20 @@ module Hercules.OAuth
 import           Control.Monad.Except.Extra
 import           Data.Aeson
 import           Data.ByteString.Lazy       (fromStrict, toStrict)
-import           Data.Text
+import           Data.Text                  as T
 import           Data.Text.Encoding
+import           Data.ByteString
 import           Network.OAuth.OAuth2
 import qualified Network.OAuth.OAuth2       as OA
 import           Servant
 import           Servant.Redirect
-
+import qualified Data.ByteString.Lazy.Char8 as C
+import Data.Maybe           (fromMaybe)
 import Hercules.OAuth.Authenticators
 import Hercules.OAuth.Types
 import Hercules.ServerEnv
+import Hercules.Database.Hercules
+import Hercules.OAuth.Authenticators.Google
 
 authCallback :: AuthenticatorName
              -> Maybe AuthCode
@@ -63,15 +67,19 @@ handleCode authName state (AuthCode code) = do
     =<< withHttpManager (\m -> fetchAccessToken m config (encodeUtf8 code))
 
   -- Get the user info with the token
-  user <- either (redirectError redirectURI) pure
+  userID <- either (redirectError redirectURI) pure
     =<< authenticatorGetUserInfo authenticator token
-
+  
   -- Create a JWT
   jwt <- either (const (redirectError redirectURI "Failed to create JWT")) pure
-    =<< makeUserJWT user
+    =<< makeUserJWT userID
 
-  -- Return to the frontend
-  redirectSuccess redirectURI jwt clientState
+  mUser <- findUser userID
+  case mUser of 
+      Just user ->
+        -- Return to the frontend
+        redirectSuccess redirectURI jwt clientState user 
+      Nothing -> redirectError redirectURI "Failed to retrieve user"
 
 redirectError :: OA.URI
               -> Text
@@ -85,9 +93,10 @@ redirectSuccess :: OA.URI
                 -> PackedJWT
                 -- ^ This user's token
                 -> Maybe AuthClientState
+                -> User
                 -> App a
-redirectSuccess uri jwt state =
-  let params = ("jwt", unPackedJWT jwt) :
+redirectSuccess uri jwt state user =
+  let params = [("jwt", unPackedJWT jwt), ("user", toQuery user)  ] ++
                case state of
                  Nothing -> []
                  Just s  -> [("state", encodeUtf8 . unAuthClientState $ s)]
@@ -95,3 +104,6 @@ redirectSuccess uri jwt state =
 
 unpackState :: AuthStatePacked -> Maybe AuthState
 unpackState = decode . fromStrict . encodeUtf8 . unAuthStatePacked
+
+toQuery :: User -> ByteString
+toQuery user = (toStrict . C.pack . show ) (T.intercalate "," $ fromMaybe "" <$> [userEmail user, userName user])

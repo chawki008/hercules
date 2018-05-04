@@ -82,7 +82,7 @@ findOrCreateUser user token = do
 createUser :: GitHubUser -> AccessToken -> App (Either Text UserId)
 createUser GitHubUser{..} token = do
   encryptedToken <- encrypt (accessToken token)
-  let user = User () gname gemail (pack . show $ gid) encryptedToken
+  let user = User () gname gemail (pack . show $ gid) encryptedToken "" ""
   withHerculesConnection (\c -> insertUser c user) >>= \case
     Nothing -> pure $ Left "Error inserting user"
     Just i -> do
