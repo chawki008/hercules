@@ -22,6 +22,7 @@ module Hercules.ServerEnv
   , getHostAndPort
   , HerculesCipher
   , runHydraUpdateWithConnection
+  , runHerculesUpdateWithConnection
   ) where
 
 import Control.Monad.Except.Extra
@@ -74,6 +75,7 @@ data Env = Env { envHerculesConnectionPool :: Pool Connection
                , envCipher                 :: HerculesCipher
                , envPort                   :: Port
                , envHostname               :: HostName
+               , envBitbucketAuthInfo      :: Maybe BasicAuthInfo
                }
 
 -- | The cipher Hercues uses for encrypting the github access tokens
@@ -265,6 +267,7 @@ newEnv c@Config{..} authenticators =
             cipher
             configPort
             configHostname
+            configBitbucketBasicAuthInfo
 
 -- | Load a yaml configuration and run an 'App' value, useful for testing in
 -- the REPL.

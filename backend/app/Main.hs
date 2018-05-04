@@ -85,6 +85,7 @@ options = info (helper <*> parser) description
           )
       <*> optional (authInfoParser "google")
       <*> optional (authInfoParser "github")
+      <*> optional (basicAuthInfoParser "bitbucket")
 
     authInfoParser name = AuthClientInfo
       <$> (BSC.pack <$> strOption (fold [ long (name ++ "-client")
@@ -94,6 +95,20 @@ options = info (helper <*> parser) description
                                   )
           )
       <*> (BSC.pack <$> strOption (fold [ long (name ++ "-secret")
+                                        , metavar "CLIENT_SECRET"
+                                        , help (name ++ "OAuth2 Client Secret")
+                                        ]
+                                  )
+          )
+
+    basicAuthInfoParser name = BasicAuthInfo
+      <$> (BSC.pack <$> strOption (fold [ long (name ++ "-username")
+                                        , metavar "CLIENT_ID"
+                                        , help (name ++ "Google OAuth2 Client ID")
+                                        ]
+                                  )
+          )
+      <*> (BSC.pack <$> strOption (fold [ long (name ++ "-password")
                                         , metavar "CLIENT_SECRET"
                                         , help (name ++ "OAuth2 Client Secret")
                                         ]

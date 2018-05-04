@@ -8,6 +8,7 @@ module Hercules.Config
   , AuthClientInfo(..)
   , HostName
   , AccessLogLevel(..)
+  , BasicAuthInfo (..)
   ) where
 
 import Data.Aeson
@@ -36,6 +37,7 @@ data Config = Config { configPort                     :: Port
                      , configHydraConnectionString    :: Text
                      , configGoogleAuthInfo           :: Maybe AuthClientInfo
                      , configGitHubAuthInfo           :: Maybe AuthClientInfo
+                     , configBitbucketBasicAuthInfo   :: Maybe BasicAuthInfo
                      }
   deriving(Read, Show)
 

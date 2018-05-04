@@ -32,6 +32,7 @@ module Hercules.OAuth.Types
   , AccessTokenEndpoint(..)
   , FrontendURL(..)
   , PackedJWT(..)
+  , BasicAuthInfo (..)
   ) where
 
 import Data.Aeson
@@ -103,6 +104,19 @@ data AuthClientInfo = AuthClientInfo
   , authClientInfoSecret :: ByteString
   }
   deriving(Read, Show)
+
+
+data BasicAuthInfo = BasicAuthInfo
+  { basicAuthInfoUsername :: ByteString
+  , basicAuthInfoPassword :: ByteString
+  }
+  deriving(Read, Show)
+
+
+instance FromJSON BasicAuthInfo where
+  parseJSON = withObject "BasicAuthInfo" (\v ->
+    BasicAuthInfo <$> (pack <$> v .: "username")
+                   <*> (pack <$> v .: "password"))
 
 instance FromJSON AuthClientInfo where
   parseJSON = withObject "AuthClientInfo" (\v ->
