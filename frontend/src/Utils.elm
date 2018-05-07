@@ -378,7 +378,7 @@ emptyJobsetWithInputs = { name = ""
 
 emptyJobsetInput : JobsetInput
 emptyJobsetInput =  { inputname = ""
-                    , inputType = "Git"
+                    , inputType = "git"
                     , value = ""
                     , emailResponsible = False
                     }              
@@ -437,3 +437,16 @@ postJobset urlBase capture_projectId body =
         , withCredentials =
             False
         }
+
+        
+googleAuthorizationEndpoint : String 
+googleAuthorizationEndpoint = "https://accounts.google.com/o/oauth2/v2/auth?"
+
+googleQueryParams : List (String, String) 
+googleQueryParams = [ ("client_id", "423965810109-3009dg957e688sgo3uuo14okk71itrmr.apps.googleusercontent.com")
+                    , ("response_type", "code")
+                    , ("redirect_uri", "http://localhost:8080/auth-callback/google")
+                    , ("scope", "https://www.googleapis.com/auth/userinfo.email")
+                    , ("state", "{\"authStateFrontendURL\":\"http://localhost:3001/loggedIn\",\"authStateClientState\":\"my state\"}")
+                     ] 
+        

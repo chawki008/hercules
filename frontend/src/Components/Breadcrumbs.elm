@@ -21,7 +21,7 @@ renderBreadcrumbs : List Breadcrumb -> List (Html Msg)
 renderBreadcrumbs breadcrumbs =
     let
         home =
-            a (onClickPage Home) [ text "Hydra" ]
+            a (onClickPage Home) [ text "Hercules" ]
 
         render breadcrumb =
             case breadcrumb.page of

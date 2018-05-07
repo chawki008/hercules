@@ -29,6 +29,7 @@ type alias User =
     , email : String
     , roles : List String
     , recieveEvaluationErrors : Bool
+    , token : Maybe String
     }
 
 
@@ -183,12 +184,7 @@ initialModel page flags =
             ]
     in
         { alert = Nothing
-        , user = Just { id = "chawki12121"
-                      , name = "chawki"
-                      , email = "chawki@chawki.com"
-                      , roles = ["Admin"]
-                      , recieveEvaluationErrors = False
-                      }
+        , user = Nothing
         , backendURL = flags.backendURL
         , mdl = Material.model
         , currentPage = page
@@ -200,7 +196,7 @@ initialModel page flags =
             , nixVersion = "1.12pre1234_abcdef"
             }
         , queueStats =
-            QueueStats 124 32345 19
+            QueueStats 0 32345 19
             -- Pages
         , jobsetPage =  Err (AjaxFail "no jobset yet") 
         , jobsets = Ok []

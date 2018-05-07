@@ -47,7 +47,10 @@ projectsView model projects =
         newprojects =
             List.indexedMap (renderProject model) (search projects)
     in
-        renderHeader model "Projects" Nothing (Just NewProject)
+        (if   (model.user /= Nothing)
+         then renderHeader model "Projects" Nothing (Just NewProject)
+         else []
+         )
             ++ if List.isEmpty newprojects then
                 render404 "Zero projects. Maybe add one?"
                else
@@ -135,7 +138,7 @@ newProjectView model =
                 , Textfield.floatingLabel
                 , Textfield.text_
                 , Options.css "display" "block"
-                , Textfield.value (Maybe.withDefault "" (Maybe.map (\u -> u.id) model.user))
+                , Textfield.value (Maybe.withDefault "" (Maybe.map (\u -> u.name) model.user))
                 , Textfield.onInput (UpdateNewProject "owner")
                 ]
            , Button.render Mdl
@@ -167,8 +170,8 @@ renderProjectWithDetails model i project =
             , small
                 [ class "hidden-xs" ]
                 [ text ("(" ++ project.description ++ ")") ]
-              -- TODO: correct index
-            , Menu.render Mdl
+            , if ((Debug.log "s" model.user) /= Nothing) 
+              then (Menu.render Mdl
                 [i + 1]
                 model.mdl
                 [ Menu.ripple
@@ -188,7 +191,8 @@ renderProjectWithDetails model i project =
                     [ menuIcon "delete"
                     , text "Delete the project"
                     ]
-                ]
+                ]) 
+                else text ""
             ]
         , if List.isEmpty project.jobsets then
             Options.span
@@ -242,7 +246,8 @@ renderProject model i project =
                 [ class "hidden-xs" ]
                 [ text ("(" ++ project.description ++ ")") ]
               -- TODO: correct index
-            , Menu.render Mdl
+            , if ((Debug.log "s" model.user) /= Nothing) 
+              then (Menu.render Mdl
                 [i + 1]
                 model.mdl
                 [ Menu.ripple
@@ -262,7 +267,8 @@ renderProject model i project =
                     [ menuIcon "delete"
                     , text "Delete the project"
                     ]
-                ]
+                ]) 
+                else text ""
             ]
         ]
 

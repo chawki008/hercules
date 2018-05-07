@@ -12,6 +12,10 @@ import Http
 import Utils as U
 import Array
 import Task 
+import Tuple exposing (first, second)
+import String exposing (slice)
+import List exposing (foldl)
+
 
 update : Msg -> AppModel -> ( AppModel, Cmd Msg )
 update msg model =
@@ -34,6 +38,7 @@ update msg model =
                     , email = "domen@dev.si"
                     , roles = []
                     , recieveEvaluationErrors = False
+                    , token = Nothing 
                     }
             in
                 case loginType of
@@ -41,10 +46,8 @@ update msg model =
                         ( { model | user = Just user }, Cmd.none )
 
                     Google ->
-                        ( { model | user = Just user }, Cmd.none )
-
+                        model ! [ Navigation.load <| googleAuthUrl U.googleAuthorizationEndpoint U.googleQueryParams]
         LogoutUserClick ->
-            -- TODO: well, should we cleanup something?
             ( { model | user = Nothing }, Cmd.none )
 
         PreferencesClick ->
@@ -247,7 +250,7 @@ updateJobsetInput jobsetWithInputs field value index = let
 updateInput : JobsetInput -> String -> String -> JobsetInput 
 updateInput input field value = case field of 
                              "inputname" -> {input | inputname = value}  
-                             "inputType" -> {input | inputType = value}  
+                             "inputType" -> {input | inputType = "git"}  
                              "value"     -> {input | value = value}  
                              _           -> input
 
@@ -347,4 +350,22 @@ getJobsetProjectFromJobsetpage okJobsetPage = case okJobsetPage of
                                 _ -> 
                                     ("", "")    
 
+googleAuthUrl : String -> List (String, String) -> String 
+googleAuthUrl endpoint queryParams =  concat endpoint <| slice 1 -1 <| foldl (concat << (concat "&")) "&"  <| List.map queryToString queryParams
+
+queryToString : (String, String) -> String 
+queryToString query = first query ++ "=" ++ second query
+
+concat : String -> String -> String 
+concat a b = a ++ b
+
+emptyUser : User
+emptyUser = { id = ""
+            , name = ""
+            , email = ""
+            , roles = []
+            , recieveEvaluationErrors = False
+            , token = Nothing 
+            }
 port title : String -> Cmd msg
+
