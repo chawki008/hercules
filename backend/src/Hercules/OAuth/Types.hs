@@ -48,7 +48,7 @@ import Hercules.OAuth.User
 -- | The name of an authenticator, "google" or "github" for example
 newtype AuthenticatorName = AuthenticatorName
   { unAuthenticatorName :: Text }
-  deriving (Eq, FromHttpApiData)
+  deriving (Eq, FromHttpApiData, Show)
 
 -- | The state the client can pass when authenticating, this will be returned
 -- if the authentication is successful.
@@ -94,6 +94,7 @@ newtype AccessTokenEndpoint = AccessTokenEndpoint
 -- | A URL to redirect the user to in order for them to authenticate themselves
 newtype UserAuthURL = UserAuthURL
   { unUserAuthURL :: ByteString }
+  deriving (Show)
 
 newtype PackedJWT = PackedJWT
   { unPackedJWT :: ByteString }

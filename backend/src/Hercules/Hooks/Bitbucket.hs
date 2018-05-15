@@ -23,6 +23,7 @@ import Servant
 import Data.ByteString.Lazy                 (fromStrict)
 import Safe                                 (headMay)
 import Hercules.Config
+import Data.Time.Clock.POSIX 
 
 getFile :: Text -> Text -> BS.ByteString -> App (BS.ByteString)
 getFile fileName repo revision = do 
@@ -50,7 +51,7 @@ handlePR pullrequest = do
                     namelessJobset   <- case eJobset of 
                                           Right jobsetWithInputs -> return $ addBranch jobsetWithInputs repo $ bitbucketPRHeadbranch pullrequest
                                           Left error -> throwError $ err412 { errBody = "failed getting hercules.json file" }
-                    jobset           <- return $ assignNameAndForceEval namelessJobset (projectName project) $ (pack . show) $ bitbucketPRId pullrequest             
+                    jobset           <- assignNameAndForceEval namelessJobset (projectName project) $ (pack . show) $ bitbucketPRId pullrequest             
                     addJobsetWithInputs (projectName project) jobset
                     return "Ok"
                     
@@ -62,16 +63,21 @@ checkRepoProject repo = headMay <$> runHydraQueryWithConnection (projectByRepoQu
 addBranch :: JobsetWithInputs -> Text -> Text -> JobsetWithInputs
 addBranch jobsetWithInputs repo branch = jobsetWithInputs 
 
-assignNameAndForceEval :: JobsetWithInputs -> Text -> Text -> JobsetWithInputs 
-assignNameAndForceEval namelessjobset projectname prid = namelessjobset{ jobsetWithInputsJobset = assignNametoJobsetAndFroceEval (jobsetWithInputsJobset namelessjobset) projectname prid
-                                                           , jobsetWithInputsInputs = assignNametoInputs (jobsetWithInputsInputs namelessjobset) projectname prid
-                                                           , jobsetWithInputsInputsalt = assignNametoInputalts (jobsetWithInputsInputsalt namelessjobset) projectname prid
-                                                           } 
+assignNameAndForceEval :: JobsetWithInputs -> Text -> Text -> App (JobsetWithInputs) 
+assignNameAndForceEval namelessjobset projectname prid = do
+                                                forcedJobset <- assignNametoJobsetAndFroceEval (jobsetWithInputsJobset namelessjobset) projectname prid
+                                                return namelessjobset   { jobsetWithInputsJobset = forcedJobset
+                                                                        , jobsetWithInputsInputs = assignNametoInputs (jobsetWithInputsInputs namelessjobset) projectname prid
+                                                                        , jobsetWithInputsInputsalt = assignNametoInputalts (jobsetWithInputsInputsalt namelessjobset) projectname prid
+                                                                        } 
 
-assignNametoJobsetAndFroceEval :: Jobset -> Text -> Text -> Jobset
-assignNametoJobsetAndFroceEval jobset projectname prid = jobset { jobsetName = createJobsetPrName projectname prid 
-                                                                , jobsetForceeval = Just True
-                                                                }
+assignNametoJobsetAndFroceEval :: Jobset -> Text -> Text -> App (Jobset)
+assignNametoJobsetAndFroceEval jobset projectname prid = do
+                                                    currentTimestamp <- liftIO $ round `fmap` getPOSIXTime 
+                                                    return jobset  { jobsetName = createJobsetPrName projectname prid 
+                                                                   , jobsetForceeval = Just True
+                                                                   , jobsetTriggertime = Just currentTimestamp
+                                                                   }
 
 assignNametoInputs :: [Jobsetinput] -> Text -> Text -> [Jobsetinput]
 assignNametoInputs jobsetinputs projectname prid =   (\jobsetinput -> jobsetinput { jobsetinputJobset = createJobsetPrName projectname prid } ) <$> jobsetinputs

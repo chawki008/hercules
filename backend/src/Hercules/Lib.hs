@@ -26,7 +26,7 @@ import qualified Data.Text.IO       as T
 
 import Hercules.API
 import Hercules.Config
-
+import Hercules.Database.Hercules
 import Hercules.OAuth
 import Hercules.OAuth.Authenticators
 import Hercules.ServerEnv
@@ -73,8 +73,23 @@ getAppForTest yaml =
 app :: Env -> IO Application
 app env = do
   let api = Proxy :: Proxy API
-      authConfig = defaultCookieSettings :. envJWTSettings env :. EmptyContext
+      authConfig = defaultCookieSettings :. envJWTSettings env :. authCheck :. EmptyContext
   pure $ serveWithContext api authConfig (server env)
+
+authCheck :: BasicAuthCheck User
+authCheck =
+  let check (BasicAuthData username password) =
+        if username == "chagui" && password == "chaguiP"
+        then return (Authorized (User
+                                    { userId          = 111
+                                    , userName        = Just $ "chagui"
+                                    , userEmail       = Nothing
+                                    , userGithubId    = Nothing
+                                    , userGithubToken = Nothing
+                                    } ))
+        else return Unauthorized
+  in BasicAuthCheck check
+
 
 server :: Env -> Server API
 server env = enter (Nat (runApp env)) api :<|> serveSwagger
@@ -87,6 +102,7 @@ server env = enter (Nat (runApp env)) api :<|> serveSwagger
                 :<|> loggedInPage
                 :<|> (join . withAuthenticated userInfoPage)
                 :<|> handlePR
+                :<|> getUser'
         queryApi = unprotected :<|> protected
         unprotected = getProjectNames
                       :<|> getProjects
@@ -114,6 +130,9 @@ root = redirectBS "/docs/"
 serveSwagger :: Server (SwaggerSchemaUI "docs" "swagger.json")
 serveSwagger = swaggerSchemaUIServer swaggerDoc
 
+getUser' :: User -> App Text 
+getUser' = return . pack . show 
+
 getUser :: AuthResult UserId -> App Text
 getUser = withAuthenticated (pack . show)
 
@@ -123,7 +142,6 @@ withAuthenticated f = \case
   _                 -> do
     logNotice "Failed user authentication attempt"
     throwError err401
-
 
 
                                   

@@ -16,7 +16,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "eval \"$buildHercules\" && webpack --optimize-minimize --bail",
     "watch": "eval \"$buildHercules\" && webpack --watch",
-    "dev": "eval \"$buildHercules\" && webpack-dev-server --watch --hot --port 3000"
+    "dev": "eval \"$buildHercules\" && webpack-dev-server --watch --hot --port 3001"
   },
   "author": "Domen Kozar",
   "license": "ISC"

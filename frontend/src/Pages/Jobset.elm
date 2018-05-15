@@ -176,7 +176,7 @@ newJobsetView model =
                     [ Toggles.value (get 0 model.newJobsetPage.toggles)
                     , Toggles.group "EnabledRadioGroup"
                     , Toggles.ripple
-                    , Toggles.onClick (SwitchToggle (NewJobset "") 0)
+                    , Toggles.onClick (SwitchToggle (NewJobset "") 1)
                     , Options.css "margin" "4px"
                     ]
                     [ text "Enabled" ]
@@ -184,7 +184,7 @@ newJobsetView model =
                     [ Toggles.value (get 1 model.newJobsetPage.toggles)
                     , Toggles.group "EnabledRadioGroup"
                     , Toggles.ripple
-                    , Toggles.onClick (SwitchToggle (NewJobset "")  1)
+                    , Toggles.onClick (SwitchToggle (NewJobset "")  2)
                     , Options.css "margin" "4px" 
                     ]
                     [ text "One-shot " ]
@@ -192,7 +192,7 @@ newJobsetView model =
                     [ Toggles.value (get 2 model.newJobsetPage.toggles)
                     , Toggles.group "EnabledRadioGroup"
                     , Toggles.ripple
-                    , Toggles.onClick (SwitchToggle (NewJobset "") 2)
+                    , Toggles.onClick (SwitchToggle (NewJobset "") 0)
                     , Options.css "margin" "4px"
                     ]
                     [ text "Disabled" ] 

@@ -22,36 +22,36 @@ spec = with (getAppForTest "/home/medchawkicheikh/nix/ci/hercules/chawki008Hercu
     describe "GET docs" $ do
         it "/docs responds with 200" $ do
             get "/docs" `shouldRespondWith` 200
-    describe "GET projectNames" $ do 
-        it "/projectNames responds with json200" $ do
-            get "/projectNames" `shouldRespondWith` 200 {matchHeaders = [hContentType <:> "application/json"] } 
-    describe "GET projects" $ do 
-        it "/projects responds with json200" $ do
-            get "/projects" `shouldRespondWith` 200 {matchHeaders = [hContentType <:> "application/json"] } 
-    describe "GET project" $ do     
-        it "/projects/projectName responds with json200" $ do
-            get "/projects/projectName" `shouldRespondWith` testProject 
-    describe "GET projects With Jobsets" $ do 
-        it "/projectsWithJobsets responds with json200" $ do
-            get "/projectsWithJobsets" `shouldRespondWith` 200 {matchHeaders = [hContentType <:> "application/json"] } 
-    describe "GET project With Jobsets" $ do 
-        it "/projectsWithJobsets/projectName1 responds with json200" $ do
-            get "/projectsWithJobsets/projectName1" `shouldRespondWith` testProjectWithJobsets 
-    describe "GET all jobsets evals" $ do 
-        it "/projects/projectName/jobsetName1/jobsetevals responds with json200" $ do
-            get "/projects/projectName/jobsetName1/jobsetevals" `shouldRespondWith` emptyList
-    describe "GET all jobsets evals with builds" $ do 
-        it "/projects/projectName/jobsetName1/jobs responds with json200" $ do
-            get "/projects/projectName/jobsetName1/jobs" `shouldRespondWith` emptyList
-    describe "Post already Existing project" $ do 
-        it "/projects responds " $ do
-            request methodPost "/projects" [(hContentType, "application/json")] alreadyExistingProject `shouldRespondWith` "project already exists" {matchStatus = 409} 
-    describe "Post jobset to non existing project" $ do 
-        it "/projects/nonExistingProjectName responds " $ do
-            request methodPost "/projects/nonExistingProjectName" [(hContentType, "application/json")] testJobsetWithInputs `shouldRespondWith` "project doesn't exist" {matchStatus = 404}
-    describe "Post jobset to an existing jobset" $ do 
-        it "/projects/projectName responds " $ do
-            request methodPost "/projects/projectName" [(hContentType, "application/json")] testJobsetWithInputs `shouldRespondWith` "jobset already exists" {matchStatus = 409}
+    -- describe "GET projectNames" $ do 
+    --     it "/projectNames responds with json200" $ do
+    --         get "/projectNames" `shouldRespondWith` 200 {matchHeaders = [hContentType <:> "application/json"] } 
+    -- describe "GET projects" $ do 
+    --     it "/projects responds with json200" $ do
+    --         get "/projects" `shouldRespondWith` 200 {matchHeaders = [hContentType <:> "application/json"] } 
+    -- describe "GET project" $ do     
+    --     it "/projects/projectName responds with json200" $ do
+    --         get "/projects/projectName" `shouldRespondWith` testProject 
+    -- describe "GET projects With Jobsets" $ do 
+    --     it "/projectsWithJobsets responds with json200" $ do
+    --         get "/projectsWithJobsets" `shouldRespondWith` 200 {matchHeaders = [hContentType <:> "application/json"] } 
+    -- describe "GET project With Jobsets" $ do 
+    --     it "/projectsWithJobsets/projectName1 responds with json200" $ do
+    --         get "/projectsWithJobsets/projectName1" `shouldRespondWith` testProjectWithJobsets 
+    -- describe "GET all jobsets evals" $ do 
+    --     it "/projects/projectName/jobsetName1/jobsetevals responds with json200" $ do
+    --         get "/projects/projectName/jobsetName1/jobsetevals" `shouldRespondWith` emptyList
+    -- describe "GET all jobsets evals with builds" $ do 
+    --     it "/projects/projectName/jobsetName1/jobs responds with json200" $ do
+    --         get "/projects/projectName/jobsetName1/jobs" `shouldRespondWith` emptyList
+    -- describe "Post already Existing project" $ do 
+    --     it "/projects responds " $ do
+    --         request methodPost "/projects" [(hContentType, "application/json")] alreadyExistingProject `shouldRespondWith` "project already exists" {matchStatus = 409} 
+    -- describe "Post jobset to non existing project" $ do 
+    --     it "/projects/nonExistingProjectName responds " $ do
+    --         request methodPost "/projects/nonExistingProjectName" [(hContentType, "application/json")] testJobsetWithInputs `shouldRespondWith` "project doesn't exist" {matchStatus = 404}
+    -- describe "Post jobset to an existing jobset" $ do 
+    --     it "/projects/projectName responds " $ do
+    --         request methodPost "/projects/projectName" [(hContentType, "application/json")] testJobsetWithInputs `shouldRespondWith` "jobset already exists" {matchStatus = 409}
      
 testProject :: ResponseMatcher 
 testProject = fromString "{\"projectDisplayname\":\"projectDisplayname\",\"projectHomepage\":\"projectHomepage\",\"projectOwner\":\"projectOwner\",\"projectHidden\":1,\"projectName\":\"projectName\",\"projectRepo\":null,\"projectEnabled\":1,\"projectDescription\":\"projectDescription\"}"

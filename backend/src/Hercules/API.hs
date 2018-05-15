@@ -56,6 +56,7 @@ type Pages = "login" :> Get '[HTML] Html
                          :> Get '[HTML] Html
         :<|> "repos" :> Auth '[JWT] UserId :> Get '[HTML] Html
         :<|> "hook"  :> ReqBody '[JSON] BitbucketPR :> Post '[JSON] Text
+        :<|> "authTest" :> Servant.BasicAuth "foo-realm" User :> Get '[JSON] Text
 
 type API = (QueryAPI
       :<|> Pages

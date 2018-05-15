@@ -113,8 +113,9 @@ withHttpManager f = do
   liftIO $ f manager
 
 getAuthenticator :: AuthenticatorName -> App (Maybe (OAuth2Authenticator App))
-getAuthenticator name =
-  find ((== name) . authenticatorName) <$> asks envAuthenticators
+getAuthenticator name = do 
+            liftIO $ putStrLn $ show name
+            find ((== name) . authenticatorName) <$> asks envAuthenticators
 
 makeUserJWT :: UserId -> App (Either Error PackedJWT)
 makeUserJWT user = do

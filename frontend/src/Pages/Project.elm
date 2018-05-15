@@ -44,8 +44,8 @@ view model page =
 projectsView : AppModel -> List Project -> List (Html Msg)
 projectsView model projects =
     let
-        newprojects =
-            List.indexedMap (renderProject model) (search projects)
+        newprojects = 
+            List.indexedMap (renderProject model) ( projects)
     in
         (if   (model.user /= Nothing)
          then renderHeader model "Projects" Nothing (Just NewProject)
@@ -170,7 +170,7 @@ renderProjectWithDetails model i project =
             , small
                 [ class "hidden-xs" ]
                 [ text ("(" ++ project.description ++ ")") ]
-            , if ((Debug.log "s" model.user) /= Nothing) 
+            , if ((model.user) /= Nothing) 
               then (Menu.render Mdl
                 [i + 1]
                 model.mdl
@@ -246,7 +246,7 @@ renderProject model i project =
                 [ class "hidden-xs" ]
                 [ text ("(" ++ project.description ++ ")") ]
               -- TODO: correct index
-            , if ((Debug.log "s" model.user) /= Nothing) 
+            , if ((model.user) /= Nothing) 
               then (Menu.render Mdl
                 [i + 1]
                 model.mdl
@@ -255,7 +255,7 @@ renderProject model i project =
                 , Options.css "float" "right"
                 ]
                 [ Menu.item 
-                    [ Menu.onSelect (NewPage (NewJobset (getProject i model).id )) ]
+                    [ Menu.onSelect (NewPage (NewJobset (Debug.log "ds" (getProject i model)).id )) ]
                     [ menuIcon "add"
                     , text "Add a jobset"
                     ]
