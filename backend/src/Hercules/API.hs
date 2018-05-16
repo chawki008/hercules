@@ -31,16 +31,14 @@ type Unprotected =
  :<|> "projectsWithJobsets" :> Capture "projectId" Text :> Get '[JSON] (Maybe ProjectWithJobsetsWithStatus)
  :<|> "projects" :> Capture "projectName" Text :> Capture "jobsetName" Text :> "jobsetevals" :> Get '[JSON] [JobsetevalWithStatus]
  :<|> "projects" :> Capture "projectName" Text :> Capture "jobsetName" Text :> "jobs" :> Get '[JSON] [JobsetevalWithBuilds]
- :<|> "projects" :> ReqBody '[JSON] Project :> Post '[JSON] Text
---  :<|> "projects" :> Capture "projectId" Text :> ReqBody '[JSON] Jobset :> Post '[JSON] Text
- :<|> "projects" :> Capture "projectId" Text :> ReqBody '[JSON] JobsetWithInputs :> Post '[JSON] Text
  :<|> "queue_summary" :> Get '[JSON] QueueSummary
 
-type Protected = "protected" :> Get '[JSON] Text
-
-type QueryAPI = Unprotected
-      :<|> Auth '[JWT] UserId :> Protected
-
+type Protected = Auth '[JWT] UserId :> "protected" :> Get '[JSON] Text
+                 :<|> Auth '[JWT] UserId :> "projects" :> ReqBody '[JSON] Project :> Post '[JSON] Text
+                 :<|> Auth '[JWT] UserId :> "projects" :> Capture "projectId" Text :> ReqBody '[JSON] JobsetWithInputs :> Post '[JSON] Text
+                  
+type QueryAPI = Unprotected :<|> Protected
+ 
 -- | A bunch of pages used for debugging and examples
 type Pages = "login" :> Get '[HTML] Html
         :<|> "login" :> Capture "authType" AuthenticatorName

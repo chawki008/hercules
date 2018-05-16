@@ -95,11 +95,11 @@ server env = enter (Nat (runApp env)) api :<|> serveSwagger
                       :<|> getProjectWithJobsetsWithStatus
                       :<|> getJobsetEvals
                       :<|> getJobsetevalsWithBuilds
-                      :<|> addProject 
                       -- :<|> addJobset 
-                      :<|> addJobsetWithInputs 
                       :<|> getQueueSummary 
         protected = getUser
+                    :<|> protectedWrapper1 addProject 
+                    :<|> protectedWrapper2 addJobsetWithInputs 
 
 (.:) :: (c -> d) -> (a -> b -> c) -> a -> b -> d
 (.:) = (.) . (.)
@@ -107,6 +107,15 @@ server env = enter (Nat (runApp env)) api :<|> serveSwagger
 (.∵) :: (d -> e) -> (a -> b -> c -> d) -> a -> b -> c -> e
 (.∵) = (.) . (.) . (.)
 
+protectedWrapper1 ::  (a -> App b) -> AuthResult UserId -> a -> App b 
+protectedWrapper1 handler result ressource  = do 
+                                  withAuthenticated id result 
+                                  handler ressource
+
+protectedWrapper2 ::  (a -> c -> App b) -> AuthResult UserId -> a -> c -> App b 
+protectedWrapper2 handler result ressource1 ressource2  = do 
+                                  withAuthenticated id result 
+                                  handler ressource1 ressource2
 
 root :: App a
 root = redirectBS "/docs/"
