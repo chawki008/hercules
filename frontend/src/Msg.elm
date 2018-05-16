@@ -23,7 +23,6 @@ type Msg
     | PreferencesClick
     | LiveSearchMsg LiveSearch.Msg
     | NewPage Page
-    | ClickCreateProject
     | UrlChange Navigation.Location
     | GetProjects (Result Http.Error (List Project))
     | GetProjectWithJobsets (Result Http.Error (Maybe ProjectWithJobsetsWithStatus))
