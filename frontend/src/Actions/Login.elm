@@ -16,7 +16,7 @@ loginUserClick model loginType =
                     , email = "domen@dev.si"
                     , roles = []
                     , recieveEvaluationErrors = False
-                    , token = Nothing 
+                    , token = "" 
                     }
             in
                 case loginType of

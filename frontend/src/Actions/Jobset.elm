@@ -28,7 +28,7 @@ addJobsetInputM model =
 -- ########################################################### --
 addJobsetSubmit : AppModel -> (AppModel, Cmd Msg)
 addJobsetSubmit model = 
-        (model, Http.send AddJobset (U.postJobset "/api" model.newJobsetPage.project (Maybe.withDefault U.emptyJobsetWithInputs model.newJobsetPage.jobset)))
+        (model, Http.send AddJobset (U.postJobset "/api" "model.user.token" model.newJobsetPage.project (Maybe.withDefault U.emptyJobsetWithInputs model.newJobsetPage.jobset)))
 
 -- ########################################################### --
 addJobset : AppModel -> String -> (AppModel, Cmd Msg)

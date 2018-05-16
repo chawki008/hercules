@@ -33,7 +33,15 @@ updateNewProject model field value = ({ model | newProjectPage = updateNewProjec
          
 --  ################################################ --           
 addProjectSubmit : AppModel -> (AppModel, Cmd Msg)
-addProjectSubmit model = (model, Http.send AddProject (H.postProjects "/api"  (U.unMapProject (Maybe.withDefault U.emptyProject model.newProjectPage.project))))
+addProjectSubmit model = 
+        let
+            mUser = model.user
+        in
+            case mUser of 
+                Nothing -> 
+                    (model, Cmd.none)
+                Just user -> 
+                    (model, Http.send AddProject (H.postProjects "/api" user.token (U.unMapProject (Maybe.withDefault U.emptyProject model.newProjectPage.project))))
         
 --  ################################################ --           
 addProject : AppModel -> String -> (AppModel, Cmd Msg)

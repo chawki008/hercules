@@ -60,12 +60,18 @@ parseParams stringWithAmpersands =
             UrlParams (Dict.fromList eachPair)
 
 
-updateParams : Dict String (Maybe String )-> Maybe User 
+updateParams : Dict String (Maybe String)-> Maybe User 
 updateParams params = Debug.log "user" <| Just { id = ""
                     , name = "Mohamed Chawki Cheikh"
                     , email = "mohamedchawki.cheikh@predictix.com"
                     , roles = []
                     , recieveEvaluationErrors = False
-                    , token = Maybe.withDefault Nothing <| Dict.get "?jwt" params 
+                    , token = getToken params 
                     }
-
+                
+getToken : Dict String (Maybe String) -> String 
+getToken params = let 
+                    mToken = Maybe.withDefault Nothing <| Dict.get "?jwt" params 
+                    token = Maybe.withDefault "" mToken
+                  in 
+                    "Bearer " ++ token 

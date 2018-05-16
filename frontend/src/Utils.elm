@@ -415,13 +415,14 @@ jsonInputs = Json.Encode.object << Array.toList << Array.map jsonInput
 jsonInput : JobsetInput -> (String, Json.Encode.Value) 
 jsonInput jobsetInput = (jobsetInput.inputname, Json.Encode.object [("type", Json.Encode.string jobsetInput.inputType), ("value", Json.Encode.string jobsetInput.value), ("emailresponsible", Json.Encode.bool jobsetInput.emailResponsible)])
 
-postJobset : String -> String -> JobsetWithInputs -> Http.Request (String)
-postJobset urlBase capture_projectId body =
+postJobset : String -> String -> String -> JobsetWithInputs -> Http.Request (String)
+postJobset urlBase header_authorization capture_projectId body =
     Http.request
         { method =
             "POST"
         , headers =
-            []
+             [ Http.header "authorization" header_authorization
+             ]
         , url =
             String.join "/"
                 [ urlBase

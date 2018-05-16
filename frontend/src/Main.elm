@@ -17,9 +17,9 @@ init flags location =
         (page, mUser) = Authentication.authenticateFirst location
         model = initialModel page flags
     in {model | user = mUser} ! [ Material.init Mdl
-               , title (pageToTitle page)
-               , Task.succeed (NewPage page)  |> Task.perform identity             
-               ]
+                                , title (pageToTitle page)
+                                , Task.succeed (NewPage page)  |> Task.perform identity             
+                                ]
 
 
 main : Program Flags AppModel Msg

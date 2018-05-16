@@ -29,7 +29,7 @@ type alias User =
     , email : String
     , roles : List String
     , recieveEvaluationErrors : Bool
-    , token : Maybe String
+    , token : String
     }
 
 
