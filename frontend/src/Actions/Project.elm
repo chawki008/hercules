@@ -7,6 +7,7 @@ import Hercules as H
 import Http
 import Task 
 import Urls 
+import Regex exposing (..)
 
 --  ################################################ --           
 getProjects : AppModel -> List H.Project -> (AppModel, Cmd Msg)
@@ -29,7 +30,13 @@ getProjectWithJobsets model projectWithJobsetsWithStatus =
 
 --  ################################################ --           
 updateNewProject : AppModel -> String -> String -> (AppModel, Cmd Msg)
-updateNewProject model field value = ({ model | newProjectPage = updateNewProjectPage model.newProjectPage field value} , Cmd.none)
+updateNewProject model field value = let
+                                        validationResult = Debug.log "error" <| validateProjectField field value 
+                                        newProjectPage = updateNewProjectPage model.newProjectPage field value
+                                     in
+                                        case validationResult of 
+                                            Nothing -> ({ model | newProjectPage = updateNewProjectPageError newProjectPage False} , Cmd.none)
+                                            Just error -> ({ model | newProjectPage = updateNewProjectPageError newProjectPage True}, Cmd.none)
          
 --  ################################################ --           
 addProjectSubmit : AppModel -> (AppModel, Cmd Msg)
@@ -52,6 +59,20 @@ addProject model addResult =
                     (model, Task.succeed (NewPage (Urls.Project project.id)) |> Task.perform identity)
         
 
+validateProjectField : String -> String -> Maybe ValidationError 
+validateProjectField field value =
+              case field of 
+                "id" -> validateProjectId value
+                _    -> Nothing
+
+validateProjectId : String -> Maybe ValidationError 
+validateProjectId projectId = if contains projectNameRegex projectId 
+                              then Nothing
+                              else Just {errorMessage = "Invalid project Name"}
+
+projectNameRegex : Regex 
+projectNameRegex = regex "^(?:[A-Za-z_][A-Za-z0-9-_]*)$"
+
 updateNewProjectPage : NewProjectPage -> String -> String -> NewProjectPage
 updateNewProjectPage newProjectPage field value = let 
                                                     mProject = newProjectPage.project
@@ -60,6 +81,9 @@ updateNewProjectPage newProjectPage field value = let
                                                         Just project -> {newProjectPage | project = Just <| updateProject project field value}
                                                         Nothing -> {newProjectPage | project = Just <| updateProject U.emptyProject field value}
                     
+updateNewProjectPageError : NewProjectPage -> Bool -> NewProjectPage
+updateNewProjectPageError newProjectPage invalid = {newProjectPage | validations = U.set 0 invalid newProjectPage.validations}
+
 updateProject : Project -> String -> String -> Project 
 updateProject project field value =
               case field of 
@@ -70,3 +94,7 @@ updateProject project field value =
                 "url"         -> {project | url = value}     
                 "repo"        -> {project | repo = value}     
                 _             -> project     
+
+type alias ValidationError = {
+        errorMessage : String     
+}

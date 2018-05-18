@@ -7,7 +7,8 @@ import Hercules as H
 import Array
 
 type alias Flags =
-    { backendURL : String
+    { backendURL : String,
+      user : Maybe User
     }
 
 type AlertType
@@ -110,6 +111,7 @@ type AjaxError msg
 type alias NewProjectPage = 
     { project : Maybe Project
     , toggles : Array.Array Bool
+    , validations : Array.Array Bool
     }
 
 type alias NewJobsetPage = 
@@ -184,7 +186,7 @@ initialModel page flags =
             ]
     in
         { alert = Nothing
-        , user = Nothing
+        , user = Debug.log "user " flags.user
         , backendURL = flags.backendURL
         , mdl = Material.model
         , currentPage = page
@@ -273,6 +275,7 @@ initialModel page flags =
             ]
             , newProjectPage = { project = Nothing
                                , toggles = Array.fromList [ False, False ]  
+                               , validations = Array.fromList [False]
                                }
             , newJobsetPage = { jobset = Nothing 
                               , toggles = Array.fromList [ True, False, False, False, False ]

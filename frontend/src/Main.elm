@@ -1,4 +1,4 @@
-module Main exposing (..)
+port module Main exposing (..)
 
 import Material
 import Navigation
@@ -16,10 +16,12 @@ init flags location =
     let
         (page, mUser) = Authentication.authenticateFirst location
         model = initialModel page flags
-    in {model | user = mUser} ! [ Material.init Mdl
-                                , title (pageToTitle page)
-                                , Task.succeed (NewPage page)  |> Task.perform identity             
-                                ]
+    in 
+        {model | user = if (mUser /= Nothing) then mUser else model.user} ! [ Material.init Mdl
+                                                                             , title (pageToTitle page)
+                                                                             , Task.succeed (NewPage page)  |> Task.perform identity  
+                                                                             , if (mUser /= Nothing) then setStorage mUser else Cmd.none        
+                                                                             ]
 
 
 main : Program Flags AppModel Msg
@@ -30,6 +32,9 @@ main =
         , view = view
         , subscriptions = Material.subscriptions Mdl
         }
+
+port setStorage : Maybe User -> Cmd msg
+
 
 
 -- parseLocation : Navigation.Location -> ParseResult

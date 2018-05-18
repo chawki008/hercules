@@ -61,6 +61,7 @@ newProjectView : AppModel -> List (Html Msg)
 newProjectView model =
     let 
         project = Maybe.withDefault  (mapProjectWithJobsets Nothing) model.newProjectPage.project
+        projectIdError = get 0 model.newProjectPage.validations
     in
     renderHeader model "Add a new project" Nothing Nothing
         ++ [ Html.form []
@@ -70,7 +71,9 @@ newProjectView model =
                     [ Textfield.label "Identifier (e.g. hydra)"
                     , Textfield.floatingLabel
                     , Textfield.text_
-                    , Textfield.value project.id
+                    , if projectIdError 
+                      then Textfield.error "Invalid identifier: shouldn't start with number or special caracter and no spaces" 
+                      else Textfield.value project.id
                     , Options.css "display" "block"
                     , Textfield.onInput (UpdateNewProject "id")
                     ]
@@ -170,7 +173,7 @@ renderProjectWithDetails model i project =
             , small
                 [ class "hidden-xs" ]
                 [ text ("(" ++ project.description ++ ")") ]
-            , if ((Debug.log "s" model.user) /= Nothing) 
+            , if ((model.user) /= Nothing) 
               then (Menu.render Mdl
                 [i + 1]
                 model.mdl
@@ -246,7 +249,7 @@ renderProject model i project =
                 [ class "hidden-xs" ]
                 [ text ("(" ++ project.description ++ ")") ]
               -- TODO: correct index
-            , if ((Debug.log "s" model.user) /= Nothing) 
+            , if ((model.user) /= Nothing) 
               then (Menu.render Mdl
                 [i + 1]
                 model.mdl

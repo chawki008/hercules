@@ -1,4 +1,4 @@
-module Update exposing (..)
+port module Update exposing (..)
 
 import Material
 import Models exposing (..)
@@ -21,7 +21,7 @@ update msg model =
            ActLogin.loginUserClick model loginType 
 
         LogoutUserClick ->
-            ( { model | user = Nothing }, Cmd.none )
+            ( { model | user = Nothing }, removeStorage "user" )
 
     -- ###### Login Msgs ###### --
 
@@ -147,5 +147,7 @@ update msg model =
                 ( Debug.log (toString e) model, Cmd.none ) 
 
         Test str -> ({ model | backendURL = Debug.log "t"  str}, Cmd.none)
+
+port removeStorage : String -> Cmd msg
 
 

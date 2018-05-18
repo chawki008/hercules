@@ -387,6 +387,10 @@ get : Int -> Array.Array Bool -> Bool
 get k toggles = 
   Array.get k toggles |> Maybe.withDefault False
 
+set : Int -> Bool -> Array.Array Bool -> Array.Array Bool
+set k value toggles = 
+  Array.set k value toggles 
+
 getJobsetInput : Int -> Array.Array JobsetInput -> JobsetInput
 getJobsetInput k jobsetInputs = 
   Array.get k jobsetInputs |> Maybe.withDefault emptyJobsetInput
