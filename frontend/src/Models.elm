@@ -119,6 +119,7 @@ type alias NewJobsetPage =
     , toggles : Array.Array Bool
     , project : String
     , jobsetInputsNr : Int
+    , validations : Array.Array Bool
     }
 
 type alias JobsetWithInputs = 
@@ -281,6 +282,7 @@ initialModel page flags =
                               , toggles = Array.fromList [ True, False, False, False, False ]
                               , project = ""  
                               , jobsetInputsNr = 0
+                              , validations = Array.fromList [False]
                               }
             , queueSummary = { queueSummaryJobsets = []
                              , queueSummarySystems = []

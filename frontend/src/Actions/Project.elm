@@ -59,13 +59,13 @@ addProject model addResult =
                     (model, Task.succeed (NewPage (Urls.Project project.id)) |> Task.perform identity)
         
 
-validateProjectField : String -> String -> Maybe ValidationError 
+validateProjectField : String -> String -> Maybe U.ValidationError 
 validateProjectField field value =
               case field of 
                 "id" -> validateProjectId value
                 _    -> Nothing
 
-validateProjectId : String -> Maybe ValidationError 
+validateProjectId : String -> Maybe U.ValidationError 
 validateProjectId projectId = if contains projectNameRegex projectId 
                               then Nothing
                               else Just {errorMessage = "Invalid project Name"}
@@ -95,6 +95,3 @@ updateProject project field value =
                 "repo"        -> {project | repo = value}     
                 _             -> project     
 
-type alias ValidationError = {
-        errorMessage : String     
-}

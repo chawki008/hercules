@@ -170,6 +170,8 @@ newJobsetView : AppModel -> List (Html Msg)
 newJobsetView model =
     let 
         project = Maybe.withDefault  (mapProjectWithJobsets Nothing) model.newProjectPage.project
+        jobsetNameError = get 0 model.newJobsetPage.validations
+        jobset = Maybe.withDefault emptyJobsetWithInputs model.newJobsetPage.jobset
     in
     renderHeader model "Add a new jobset" Nothing Nothing
         ++ [ Toggles.radio Mdl [0] model.mdl
@@ -212,6 +214,10 @@ newJobsetView model =
                         model.mdl
                         [ Textfield.label "Identifier "
                         , Textfield.floatingLabel
+                        , if jobsetNameError 
+                          then Textfield.error "Invalid identifier: shouldn't start with number or special caracter and no spaces" 
+                          else Options.css "position" "relative"
+                        , Textfield.value jobset.name
                         , Textfield.text_
                         , Options.css "display" "block"
                         , Textfield.onInput (UpdateNewJobset "name")

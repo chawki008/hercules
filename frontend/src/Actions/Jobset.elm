@@ -8,6 +8,7 @@ import Array
 import Http
 import Task 
 import Urls 
+import Regex exposing (..)
 
 -- ########################################################### --
 updateNewJobset : AppModel -> String -> String -> (AppModel, Cmd Msg)
@@ -41,9 +42,13 @@ addJobset model addResult =
 updateNewJobsetPage : NewJobsetPage -> String -> String -> NewJobsetPage
 updateNewJobsetPage newJobsetPage field value = let 
                                                     mJobset = newJobsetPage.jobset
+                                                    validationResult =  validateJobsetField field value
                                                 in 
                                                     case mJobset of 
-                                                        Just jobsetWithInputs -> {newJobsetPage | jobset = Debug.log "" <| Just <| updateJobset jobsetWithInputs field value  }
+                                                        Just jobsetWithInputs -> let 
+                                                                                   updatedNewJobset = {newJobsetPage | jobset = Just <| updateJobset jobsetWithInputs field value  }
+                                                                                 in 
+                                                                                   {updatedNewJobset | validations = U.set 0 validationResult updatedNewJobset.validations}
                                                         Nothing -> {newJobsetPage | jobset = Just <| updateJobset U.emptyJobsetWithInputs field value }
 
 
@@ -68,6 +73,7 @@ updateNewJobsetPageInput newJobsetPage field value index = let
                                                                 Just jobsetWithInputs -> {newJobsetPage | jobset = Debug.log "" <| Just <| updateJobsetInput jobsetWithInputs field value index}
                                                                 Nothing -> {newJobsetPage | jobset = Just <| updateJobsetInput U.emptyJobsetWithInputs field value index}
                           
+
 updateJobsetInput : JobsetWithInputs -> String -> String -> Int -> JobsetWithInputs 
 updateJobsetInput jobsetWithInputs field value index = let 
                                                         input = updateInput (U.getJobsetInput index jobsetWithInputs.inputs) field value
@@ -93,3 +99,16 @@ addJobsetInput newJobsetPage = let
 
 addInput : JobsetWithInputs -> JobsetWithInputs 
 addInput jobsetWithInputs = {jobsetWithInputs | inputs = Array.push U.emptyJobsetInput jobsetWithInputs.inputs}
+
+validateJobsetField : String -> String -> Bool
+validateJobsetField field value =
+              case field of 
+                "name" -> validateJobsetName value
+                _    -> True
+
+validateJobsetName : String -> Bool 
+validateJobsetName jobsetName = not <| contains jobsetNameRegex jobsetName 
+
+jobsetNameRegex : Regex 
+jobsetNameRegex = regex "^(?:[A-Za-z_][A-Za-z0-9-_/.]*)$"
+

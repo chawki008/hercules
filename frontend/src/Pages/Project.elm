@@ -73,7 +73,8 @@ newProjectView model =
                     , Textfield.text_
                     , if projectIdError 
                       then Textfield.error "Invalid identifier: shouldn't start with number or special caracter and no spaces" 
-                      else Textfield.value project.id
+                      else Options.css "display" "block"
+                    , Textfield.value project.id
                     , Options.css "display" "block"
                     , Textfield.onInput (UpdateNewProject "id")
                     ]

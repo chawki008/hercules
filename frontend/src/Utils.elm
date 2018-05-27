@@ -455,3 +455,6 @@ googleQueryParams = [ ("client_id", "423965810109-3009dg957e688sgo3uuo14okk71itr
                     , ("state", "{\"authStateFrontendURL\":\"http://localhost:3001/loggedIn\",\"authStateClientState\":\"my state\"}")
                      ] 
         
+type alias ValidationError = {
+        errorMessage : String     
+}
