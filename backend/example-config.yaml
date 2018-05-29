@@ -4,3 +4,12 @@ accessLogLevel: Disabled
 secretKeyFile: "secret.key"
 hydraConnectionString: "postgresql://hydra@/hydra"
 herculesConnectionString: "postgresql://hercules@/hercules"
+googleAuthInfo:
+  id: "423965810109-3009dg957e688sgo3uuo14okk71itrmr.apps.googleusercontent.com"
+  secret: "lAIEmVam-JtHnk0CE4heVBt7"
+gitHubAuthInfo:
+  id: "2554c34544fad850db8c"
+  secret: "e0ab349a6ee30bb0d65fb38da86487bda29784e1"
+bitbucketBasicAuthInfo:
+  username: "medchawkicheikh"
+  password: "infor@HERCULES"
